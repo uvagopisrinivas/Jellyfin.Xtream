@@ -42,6 +42,12 @@ public class XtreamClient(HttpClient client, ILogger<XtreamClient> logger) : IDi
     private readonly JsonSerializerSettings _serializerSettings = new()
     {
         Error = NullableEventHandler(logger),
+        Converters = new List<JsonConverter>
+        {
+            new ObjectOrArrayConverter<Category>(),
+            new ObjectOrArrayConverter<StreamInfo>(),
+            new ObjectOrArrayConverter<Series>()
+        }
     };
 
     public void UpdateUserAgent()
