@@ -19,6 +19,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Xtream.Client;
 using Jellyfin.Xtream.Client.Models;
 using Jellyfin.Xtream.Providers;
 using Jellyfin.Xtream.Service;
@@ -35,7 +36,8 @@ namespace Jellyfin.Xtream;
 /// The Xtream Codes API channel.
 /// </summary>
 /// <param name="logger">Instance of the <see cref="ILogger"/> interface.</param>
-public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSourceDisplay
+/// <param name="xtreamClient">Instance of the <see cref="IXtreamClient"/> interface.</param>
+public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) : IChannel, IDisableMediaSourceDisplay
 {
     /// <inheritdoc />
     public string? Name => "Xtream Video On-Demand";
@@ -114,17 +116,31 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
         }
     }
 
-    private Task<ChannelItemInfo> CreateChannelItemInfo(StreamInfo stream)
+    private async Task<ChannelItemInfo> CreateChannelItemInfo(StreamInfo stream)
     {
         long added = long.Parse(stream.Added, CultureInfo.InvariantCulture);
         ParsedName parsedName = StreamService.ParseName(stream.Name);
+
+        // Fetch detailed VOD info to get duration and other metadata
+        VodStreamInfo? vodInfo = null;
+        try
+        {
+            vodInfo = await xtreamClient.GetVodInfoAsync(Plugin.Instance.Creds, stream.StreamId, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to fetch VOD info for stream {StreamId}", stream.StreamId);
+        }
 
         List<MediaSourceInfo> sources =
         [
             Plugin.Instance.StreamService.GetMediaSourceInfo(
                 StreamType.Vod,
                 stream.StreamId,
-                stream.ContainerExtension)
+                stream.ContainerExtension,
+                durationSecs: vodInfo?.Info?.DurationSecs,
+                videoInfo: vodInfo?.Info?.Video,
+                audioInfo: vodInfo?.Info?.Audio)
         ];
 
         ChannelItemInfo result = new ChannelItemInfo()
@@ -137,12 +153,13 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             MediaSources = sources,
             MediaType = ChannelMediaType.Video,
             Name = parsedName.Title,
+            RunTimeTicks = vodInfo?.Info?.DurationSecs * TimeSpan.TicksPerSecond,
             Tags = new List<string>(parsedName.Tags),
             Type = ChannelItemType.Media,
             ProviderIds = { { XtreamVodProvider.ProviderName, stream.StreamId.ToString(CultureInfo.InvariantCulture) } },
         };
 
-        return Task.FromResult(result);
+        return result;
     }
 
     private async Task<ChannelItemResult> GetCategories(CancellationToken cancellationToken)

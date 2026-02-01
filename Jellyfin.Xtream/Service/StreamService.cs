@@ -272,6 +272,14 @@ public partial class StreamService(IXtreamClient xtreamClient)
             return new List<Tuple<SeriesStreamInfo, int>>();
         }
 
+        // Use Seasons list as the source of truth instead of Episodes dictionary keys
+        // This prevents seasons from disappearing when the API filters watched episodes
+        if (series.Seasons != null && series.Seasons.Count > 0)
+        {
+            return series.Seasons.Select((Season season) => new Tuple<SeriesStreamInfo, int>(series, season.SeasonId));
+        }
+
+        // Fallback to Episodes dictionary keys if Seasons list is empty
         return series.Episodes.Keys.Select((int seasonId) => new Tuple<SeriesStreamInfo, int>(series, seasonId));
     }
 
@@ -286,7 +294,15 @@ public partial class StreamService(IXtreamClient xtreamClient)
     {
         SeriesStreamInfo series = await xtreamClient.GetSeriesStreamsBySeriesAsync(Plugin.Instance.Creds, seriesId, cancellationToken).ConfigureAwait(false);
         Season? season = series.Seasons.FirstOrDefault(s => s.SeasonId == seasonId);
-        return series.Episodes[seasonId].Select((Episode episode) => new Tuple<SeriesStreamInfo, Season?, Episode>(series, season, episode));
+
+        // Check if the season exists in the Episodes dictionary before accessing
+        if (!series.Episodes.TryGetValue(seasonId, out ICollection<Episode>? episodes) || episodes == null)
+        {
+            // Return empty list if season not found instead of crashing
+            return new List<Tuple<SeriesStreamInfo, Season?, Episode>>();
+        }
+
+        return episodes.Select((Episode episode) => new Tuple<SeriesStreamInfo, Season?, Episode>(series, season, episode));
     }
 
     private static void StoreBytes(byte[] dst, int offset, int i)
@@ -355,6 +371,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
     /// <param name="restream">Boolean indicating whether or not restreaming is used.</param>
     /// <param name="start">The datetime representing the start time of catcup TV.</param>
     /// <param name="durationMinutes">The duration in minutes of the catcup TV stream.</param>
+    /// <param name="durationSecs">The duration in seconds of the stream (for VOD/Series).</param>
     /// <param name="videoInfo">The Xtream video info if known.</param>
     /// <param name="audioInfo">The Xtream audio info if known.</param>
     /// <returns>The media source info as <see cref="MediaSourceInfo"/> class.</returns>
@@ -365,6 +382,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
         bool restream = false,
         DateTime? start = null,
         int durationMinutes = 0,
+        int? durationSecs = null,
         VideoInfo? videoInfo = null,
         AudioInfo? audioInfo = null)
     {
@@ -400,6 +418,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
             Id = ToGuid(MediaSourcePrefix, (int)type, id, 0).ToString(),
             IsInfiniteStream = isLive,
             IsRemote = true,
+            RunTimeTicks = durationSecs.HasValue ? durationSecs.Value * TimeSpan.TicksPerSecond : null,
             MediaStreams =
             [
                 new()

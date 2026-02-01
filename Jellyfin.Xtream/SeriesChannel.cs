@@ -205,6 +205,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
                 StreamType.Series,
                 episode.EpisodeId,
                 episode.ContainerExtension,
+                durationSecs: episode.Info?.DurationSecs,
                 videoInfo: episode.Info?.Video,
                 audioInfo: episode.Info?.Audio)
         ];
