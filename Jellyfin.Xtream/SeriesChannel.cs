@@ -166,7 +166,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         DateTime? created = null;
         List<string> tags = [];
 
-        Season? season = series.Seasons.FirstOrDefault(s => s.SeasonId == seasonId);
+        Season? season = series.Seasons.FirstOrDefault(s => s.SeasonNumber == seasonId);
         if (season != null)
         {
             ParsedName parsedName = StreamService.ParseName(season.Name);
