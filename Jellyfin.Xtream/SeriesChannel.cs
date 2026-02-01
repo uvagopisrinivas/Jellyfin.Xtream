@@ -89,36 +89,55 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     /// <inheritdoc />
     public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
     {
+        string folderId = query.FolderId ?? "null";
+        string userId = query.UserId.ToString();
+        logger.LogInformation("GetChannelItems called - FolderId: {FolderId}, UserId: {UserId}", folderId, userId);
+
         try
         {
             if (string.IsNullOrEmpty(query.FolderId))
             {
+                logger.LogInformation("Returning categories");
                 return await GetCategories(cancellationToken).ConfigureAwait(false);
             }
 
             Guid guid = Guid.Parse(query.FolderId);
             StreamService.FromGuid(guid, out int prefix, out int categoryId, out int seriesId, out int seasonId);
+
+            logger.LogInformation(
+                "Parsed GUID - Prefix: {Prefix}, CategoryId: {CategoryId}, SeriesId: {SeriesId}, SeasonId: {SeasonId}",
+                prefix,
+                categoryId,
+                seriesId,
+                seasonId);
+
             if (prefix == StreamService.SeriesCategoryPrefix)
             {
+                logger.LogInformation("Getting series for category {CategoryId}", categoryId);
                 return await GetSeries(categoryId, cancellationToken).ConfigureAwait(false);
             }
 
             if (prefix == StreamService.SeriesPrefix)
             {
+                logger.LogInformation("Getting seasons for series {SeriesId}", seriesId);
                 return await GetSeasons(seriesId, cancellationToken).ConfigureAwait(false);
             }
 
             if (prefix == StreamService.SeasonPrefix)
             {
+                logger.LogInformation("Getting episodes for series {SeriesId}, season {SeasonId}", seriesId, seasonId);
                 return await GetEpisodes(seriesId, seasonId, cancellationToken).ConfigureAwait(false);
             }
+
+            logger.LogWarning("Unknown prefix type: {Prefix}", prefix);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to get channel items");
+            logger.LogError(ex, "Failed to get channel items for FolderId: {FolderId}", folderId);
             throw;
         }
 
+        logger.LogWarning("Returning empty result for FolderId: {FolderId}", folderId);
         return new ChannelItemResult()
         {
             TotalRecordCount = 0,
@@ -236,9 +255,11 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
 
     private async Task<ChannelItemResult> GetCategories(CancellationToken cancellationToken)
     {
+        logger.LogInformation("GetCategories: Fetching series categories");
         IEnumerable<Category> categories = await Plugin.Instance.StreamService.GetSeriesCategories(cancellationToken).ConfigureAwait(false);
         List<ChannelItemInfo> items = new(
             categories.Select((Category category) => StreamService.CreateChannelItemInfo(StreamService.SeriesCategoryPrefix, category)));
+        logger.LogInformation("GetCategories: Returning {Count} categories", items.Count);
         return new()
         {
             Items = items,
@@ -248,8 +269,10 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
 
     private async Task<ChannelItemResult> GetSeries(int categoryId, CancellationToken cancellationToken)
     {
+        logger.LogInformation("GetSeries: Fetching series for category {CategoryId}", categoryId);
         IEnumerable<Series> series = await Plugin.Instance.StreamService.GetSeries(categoryId, cancellationToken).ConfigureAwait(false);
         List<ChannelItemInfo> items = new(series.Select(CreateChannelItemInfo));
+        logger.LogInformation("GetSeries: Returning {Count} series for category {CategoryId}", items.Count, categoryId);
         return new()
         {
             Items = items,
@@ -262,6 +285,9 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         IEnumerable<Tuple<SeriesStreamInfo, int>> seasons = await Plugin.Instance.StreamService.GetSeasons(seriesId, cancellationToken).ConfigureAwait(false);
         List<ChannelItemInfo> items = new(
             seasons.Select((Tuple<SeriesStreamInfo, int> tuple) => CreateChannelItemInfo(seriesId, tuple.Item1, tuple.Item2)));
+
+        logger.LogInformation("GetSeasons for seriesId {SeriesId}: Found {Count} seasons", seriesId, items.Count);
+
         return new()
         {
             Items = items,
@@ -274,6 +300,9 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         IEnumerable<Tuple<SeriesStreamInfo, Season?, Episode>> episodes = await Plugin.Instance.StreamService.GetEpisodes(seriesId, seasonId, cancellationToken).ConfigureAwait(false);
         List<ChannelItemInfo> items = new List<ChannelItemInfo>(
             episodes.Select((Tuple<SeriesStreamInfo, Season?, Episode> tuple) => CreateChannelItemInfo(tuple.Item1, tuple.Item2, tuple.Item3)));
+
+        logger.LogInformation("GetEpisodes for seriesId {SeriesId}, seasonId {SeasonId}: Found {Count} episodes", seriesId, seasonId, items.Count);
+
         return new()
         {
             Items = items,
