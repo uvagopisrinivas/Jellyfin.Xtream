@@ -276,7 +276,10 @@ public partial class StreamService(IXtreamClient xtreamClient)
         // This prevents seasons from disappearing when the API filters watched episodes
         if (series.Seasons != null && series.Seasons.Count > 0)
         {
-            return series.Seasons.Select((Season season) => new Tuple<SeriesStreamInfo, int>(series, season.SeasonId));
+            // Only return seasons that actually have episodes in the Episodes dictionary
+            return series.Seasons
+                .Where(season => series.Episodes.ContainsKey(season.SeasonId))
+                .Select(season => new Tuple<SeriesStreamInfo, int>(series, season.SeasonId));
         }
 
         // Fallback to Episodes dictionary keys if Seasons list is empty
