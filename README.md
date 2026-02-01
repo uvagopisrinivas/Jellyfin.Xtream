@@ -1,11 +1,24 @@
 # Jellyfin.Xtream
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Kevinjil/Jellyfin.Xtream/total)
-![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/Kevinjil/Jellyfin.Xtream/latest/total)
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/Kevinjil/Jellyfin.Xtream/latest)
-![Dynamic YAML Badge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FKevinjil%2FJellyfin.Xtream%2Frefs%2Fheads%2Fmaster%2Fbuild.yaml&query=targetAbi&label=Jellyfin%20ABI)
-![Dynamic YAML Badge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FKevinjil%2FJellyfin.Xtream%2Frefs%2Fheads%2Fmaster%2Fbuild.yaml&query=framework&label=.NET%20framework)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/uvagopisrinivas/Jellyfin.Xtream/total)
+![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/uvagopisrinivas/Jellyfin.Xtream/latest/total)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/uvagopisrinivas/Jellyfin.Xtream/latest)
+![Dynamic YAML Badge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fuvagopisrinivas%2FJellyfin.Xtream%2Frefs%2Fheads%2Fmaster%2Fbuild.yaml&query=targetAbi&label=Jellyfin%20ABI)
+![Dynamic YAML Badge](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fuvagopisrinivas%2FJellyfin.Xtream%2Frefs%2Fheads%2Fmaster%2Fbuild.yaml&query=framework&label=.NET%20framework)
+
+> **Note:** This is a fork with bug fixes for series episodes disappearing and VOD duration tracking issues. Original project by [Kevinjil](https://github.com/Kevinjil/Jellyfin.Xtream).
 
 The Jellyfin.Xtream plugin can be used to integrate the content provided by an [Xtream-compatible API](https://xtream-ui.org/api-xtreamui-xtreamcode/) in your [Jellyfin](https://jellyfin.org/) instance.
+
+## Bug Fixes in This Fork
+
+This fork includes fixes for the following issues:
+
+- **Series Episodes Disappearing**: Fixed episodes disappearing when the last episode of a season is watched
+- **All Seasons Marked as Watched**: Fixed incorrect "watched" status showing for all seasons
+- **VOD Duration Tracking**: Fixed VOD movies being marked as complete after only a few seconds of playback
+- **Crash Prevention**: Added defensive checks to prevent crashes from missing season data
+
+See [BUGFIX_SUMMARY.md](BUGFIX_SUMMARY.md) for detailed technical information about the fixes.
 
 ## Installation
 
@@ -16,8 +29,10 @@ To add the repository, follow these steps:
 1. Select the `Repositories` tab on the top of the page.
 1. Click the `+` symbol to add a repository.
 1. Enter `Jellyfin.Xtream` as the repository name.
-1. Enter [`https://kevinjil.github.io/Jellyfin.Xtream/repository.json`](https://kevinjil.github.io/Jellyfin.Xtream/repository.json) as the repository url.
+1. Enter `https://uvagopisrinivas.github.io/Jellyfin.Xtream/repository.json` as the repository url (or use the original: [`https://kevinjil.github.io/Jellyfin.Xtream/repository.json`](https://kevinjil.github.io/Jellyfin.Xtream/repository.json)).
 1. Click save.
+
+**Alternative:** Download the latest release directly from the [Releases page](https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases) and manually install the DLL.
 
 To install or update the plugin, follow these steps:
 
