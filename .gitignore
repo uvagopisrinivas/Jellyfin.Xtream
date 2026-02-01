@@ -4,3 +4,11 @@ obj/
 .idea/
 .vscode/
 artifacts
+
+# Test files
+test_xtream_api.sh
+*_response.json
+constable_kanakam.json
+
+# Build artifacts
+*.zip
