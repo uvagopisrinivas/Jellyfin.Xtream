@@ -276,11 +276,12 @@ public partial class StreamService(IXtreamClient xtreamClient)
         // This prevents seasons from disappearing when the API filters watched episodes
         if (series.Seasons != null && series.Seasons.Count > 0)
         {
-            return series.Seasons.Select((Season season) => new Tuple<SeriesStreamInfo, int>(series, season.SeasonNumber));
+            // Convert to list immediately to avoid lazy evaluation issues with TV apps
+            return series.Seasons.Select((Season season) => new Tuple<SeriesStreamInfo, int>(series, season.SeasonNumber)).ToList();
         }
 
         // Fallback to Episodes dictionary keys if Seasons list is empty
-        return series.Episodes.Keys.Select((int seasonId) => new Tuple<SeriesStreamInfo, int>(series, seasonId));
+        return series.Episodes.Keys.Select((int seasonId) => new Tuple<SeriesStreamInfo, int>(series, seasonId)).ToList();
     }
 
     /// <summary>
@@ -296,13 +297,14 @@ public partial class StreamService(IXtreamClient xtreamClient)
         Season? season = series.Seasons?.FirstOrDefault(s => s.SeasonNumber == seasonId);
 
         // Check if the season exists in the Episodes dictionary before accessing
-        if (!series.Episodes.TryGetValue(seasonId, out ICollection<Episode>? episodes) || episodes == null)
+        if (!series.Episodes.TryGetValue(seasonId, out ICollection<Episode>? episodes) || episodes == null || episodes.Count == 0)
         {
             // Return empty list if season not found instead of crashing
             return new List<Tuple<SeriesStreamInfo, Season?, Episode>>();
         }
 
-        return episodes.Select((Episode episode) => new Tuple<SeriesStreamInfo, Season?, Episode>(series, season, episode));
+        // Convert to list immediately to avoid lazy evaluation issues with TV apps
+        return episodes.Select((Episode episode) => new Tuple<SeriesStreamInfo, Season?, Episode>(series, season, episode)).ToList();
     }
 
     private static void StoreBytes(byte[] dst, int offset, int i)

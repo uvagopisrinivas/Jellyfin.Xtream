@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 # Set version
-VERSION="0.8.5"
+VERSION="0.8.6"
 
 # Download and deploy
 cd /tmp
@@ -274,6 +274,7 @@ docker restart your-jellyfin-container
 
 ## Version History
 
+- **v0.8.6** - Fixed empty seasons on TV apps (lazy evaluation issue)
 - **v0.8.5** - Fixed Season model mapping and series episode access
 - **v0.8.4** - Fixed series seasons filtering (regression fix)
 - **v0.8.3** - Fixed JSON deserialization for non-standard providers
@@ -283,6 +284,13 @@ docker restart your-jellyfin-container
 ## Technical Details
 
 ### Issues Fixed
+
+#### Empty Seasons on TV Apps (v0.8.6)
+**Problem:** Series episodes showed correctly on browser and phone apps, but TV apps (Android TV, etc.) showed empty seasons.
+
+**Root Cause:** Lazy evaluation of IEnumerable - TV apps may not properly enumerate deferred execution results.
+
+**Solution:** Added `.ToList()` calls to force immediate evaluation in `GetSeasons()` and `GetEpisodes()`.
 
 #### Series Episodes Disappearing
 **Problem:** Episodes disappeared when the last episode of a season was watched.
