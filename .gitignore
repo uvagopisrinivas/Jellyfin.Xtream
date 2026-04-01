@@ -12,3 +12,4 @@ constable_kanakam.json
 
 # Build artifacts
 *.zip
+out/
