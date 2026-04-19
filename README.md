@@ -107,23 +107,27 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 ### Quick Deployment
 
 ```bash
-# Set version
-VERSION="0.8.6"
+#!/bin/bash
+VERSION="0.9.1"
+PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
-# Download and deploy
 cd /tmp
-wget https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v${VERSION}/jellyfin-xtream-v${VERSION}.zip
-python3 -m zipfile -e jellyfin-xtream-v${VERSION}.zip .
-
-# Copy to plugin directory (adjust path to match your setup)
-cp Jellyfin.Xtream.dll /path/to/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d/
-
-# Restart Jellyfin container
-docker restart jellyfin
-
-# Cleanup
-rm Jellyfin.Xtream.dll jellyfin-xtream-v${VERSION}.zip
+rm -f Jellyfin.Xtream.dll
+wget "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v${VERSION}/Jellyfin.Xtream.dll"
+docker stop jellyfin
+rm -rf "$PLUGIN_DIR"
+mkdir -p "$PLUGIN_DIR"
+cp /tmp/Jellyfin.Xtream.dll "$PLUGIN_DIR/"
+cat > "$PLUGIN_DIR/meta.json" << EOF
+{"Name": "Jellyfin Xtream","Guid": "5d774c35-8567-46d3-a950-9bb8227a0c5d","Version": "${VERSION}.0","TargetAbi": "10.11.0.0","Framework": "net9.0","Overview": "Stream content from an Xtream-compatible server.","Description": "Stream Live IPTV, Video On-Demand, and Series from an Xtream-compatible server using this plugin.","Category": "LiveTV","Owner": "uvagopisrinivas"}
+EOF
+chown -R 1000:100 "$PLUGIN_DIR"
+docker start jellyfin
+sleep 20
+docker logs jellyfin --tail 50 | grep "Jellyfin Xtream"
 ```
+
+> **Note:** Adjust `PLUGIN_DIR` to match your Docker volume mapping. The `meta.json` is required for Jellyfin to recognize the plugin.
 
 ### Finding Your Plugin Directory
 
@@ -181,30 +185,43 @@ curl "http://your-provider:port/player_api.php?username=USER&password=PASS&actio
 
 ### Version Management
 
-Update version in three files before release:
+Update version in two files before release:
 
-1. `build.yaml` - `version: "0.8.X.0"`
+1. `build.yaml` - `version: "0.9.X.0"`
 2. `Jellyfin.Xtream/Jellyfin.Xtream.csproj` - `<AssemblyVersion>` and `<FileVersion>`
-3. Rebuild and create release package
 
 ### Creating a Release
 
 ```bash
-# Build
-dotnet build Jellyfin.Xtream.sln --configuration Release
-
-# Package
-zip -j jellyfin-xtream-v0.8.X.zip Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll
-
-# Commit and tag
+# 1. Update version in build.yaml and csproj
+# 2. Commit and tag
 git add -A
-git commit -m "Version 0.8.X - Description"
-git tag v0.8.X
-git push origin master
-git push origin v0.8.X
+git commit -m "v0.9.X - Description of changes"
+git tag v0.9.X
+git push origin master --tags
 
-# Create GitHub release and upload zip file
+# 3. Build and create GitHub release (uploads DLL as release asset)
+dotnet build -c Release Jellyfin.Xtream/Jellyfin.Xtream.csproj
+gh release create v0.9.X Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll \
+  --title "v0.9.X" --notes "Description of changes"
+
+# 4. The publish.yaml workflow will auto-update repository.json on gh-pages
+#    If it doesn't, manually update gh-pages:
+git checkout gh-pages
+# Edit repository.json to add new version entry
+git add repository.json
+git commit -m "Update repository.json for v0.9.X"
+git push origin gh-pages
+git checkout master
 ```
+
+### Plugin Repository (GitHub Pages)
+
+The plugin manifest is hosted at:
+`https://uvagopisrinivas.github.io/Jellyfin.Xtream/repository.json`
+
+This is served from the `gh-pages` branch. The `publish.yaml` workflow attempts to auto-update it on release via `jellyfin/jellyfin-plugin-repository@master`. If that fails, update `repository.json` on `gh-pages` manually with the new version entry including:
+- `version`, `changelog`, `targetAbi`, `sourceUrl` (link to DLL on GitHub release), `checksum` (sha256 of DLL), `timestamp`
 
 ## Known problems
 
@@ -263,17 +280,28 @@ If VOD movies are marked as complete after a few seconds:
 ### Rollback to Previous Version
 
 ```bash
-# Download previous version
-wget https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.8.X/jellyfin-xtream-v0.8.X.zip
+VERSION="0.9.0"
+PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
-# Extract and deploy
-python3 -m zipfile -e jellyfin-xtream-v0.8.X.zip .
-cp Jellyfin.Xtream.dll /path/to/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d/
-docker restart your-jellyfin-container
+cd /tmp
+rm -f Jellyfin.Xtream.dll
+wget "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v${VERSION}/Jellyfin.Xtream.dll"
+docker stop jellyfin
+rm -rf "$PLUGIN_DIR"
+mkdir -p "$PLUGIN_DIR"
+cp /tmp/Jellyfin.Xtream.dll "$PLUGIN_DIR/"
+cat > "$PLUGIN_DIR/meta.json" << EOF
+{"Name": "Jellyfin Xtream","Guid": "5d774c35-8567-46d3-a950-9bb8227a0c5d","Version": "${VERSION}.0","TargetAbi": "10.11.0.0","Framework": "net9.0","Overview": "Stream content from an Xtream-compatible server.","Description": "Stream Live IPTV, Video On-Demand, and Series from an Xtream-compatible server using this plugin.","Category": "LiveTV","Owner": "uvagopisrinivas"}
+EOF
+chown -R 1000:100 "$PLUGIN_DIR"
+docker start jellyfin
 ```
 
 ## Version History
 
+- **v0.9.1** - Fix null/empty string handling for images, subtitles, and metadata across all channels
+- **v0.9.0** - Allow SDK roll forward to latest major version
+- **v0.8.9** - Add ImageUrl and SeriesName to episodes and seasons for TV app compatibility
 - **v0.8.6** - Fixed empty seasons on TV apps (lazy evaluation issue)
 - **v0.8.5** - Fixed Season model mapping and series episode access
 - **v0.8.4** - Fixed series seasons filtering (regression fix)
