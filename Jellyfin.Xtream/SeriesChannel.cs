@@ -147,6 +147,9 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     private ChannelItemInfo CreateChannelItemInfo(Series series)
     {
         ParsedName parsedName = StreamService.ParseName(series.Name);
+        string? imageUrl = GetNonEmptyOrNull(series.Cover)
+            ?? series.BackdropPaths?.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p));
+
         return new ChannelItemInfo()
         {
             CommunityRating = (float)series.Rating5Based,
@@ -154,7 +157,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             FolderType = ChannelFolderType.Series,
             Genres = GetGenres(series.Genre),
             Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
-            ImageUrl = series.Cover,
+            ImageUrl = imageUrl,
             Name = parsedName.Title,
             SeriesName = parsedName.Title,
             People = GetPeople(series.Cast),
@@ -163,41 +166,59 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         };
     }
 
-    private static List<string> GetGenres(string genreString)
+    private static string? GetNonEmptyOrNull(string? value)
     {
-        return new(genreString.Split(',').Select(genre => genre.Trim()));
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
-    private static List<PersonInfo> GetPeople(string cast)
+    private static List<string> GetGenres(string? genreString)
     {
-        return cast.Split(',').Select(name => new PersonInfo()
+        if (string.IsNullOrWhiteSpace(genreString))
         {
-            Name = name.Trim()
-        }).ToList();
+            return [];
+        }
+
+        return new(genreString.Split(',')
+            .Select(genre => genre.Trim())
+            .Where(genre => !string.IsNullOrEmpty(genre)));
+    }
+
+    private static List<PersonInfo> GetPeople(string? cast)
+    {
+        if (string.IsNullOrWhiteSpace(cast))
+        {
+            return [];
+        }
+
+        return cast.Split(',')
+            .Select(name => name.Trim())
+            .Where(name => !string.IsNullOrEmpty(name))
+            .Select(name => new PersonInfo() { Name = name })
+            .ToList();
     }
 
     private ChannelItemInfo CreateChannelItemInfo(int seriesId, SeriesStreamInfo series, int seasonId)
     {
         Client.Models.SeriesInfo serie = series.Info;
         string name = $"Season {seasonId}";
-        string cover = series.Info.Cover;
         string? overview = null;
         DateTime? created = null;
         List<string> tags = [];
 
-        Season? season = series.Seasons.FirstOrDefault(s => s.SeasonNumber == seasonId);
+        string? cover = null;
+        Season? season = series.Seasons?.FirstOrDefault(s => s.SeasonNumber == seasonId);
         if (season != null)
         {
             ParsedName parsedName = StreamService.ParseName(season.Name);
             name = parsedName.Title;
             tags.AddRange(parsedName.Tags);
             created = season.AirDate;
-            overview = season.Overview;
-            if (!string.IsNullOrEmpty(season.Cover))
-            {
-                cover = season.Cover;
-            }
+            overview = GetNonEmptyOrNull(season.Overview);
+            cover = GetNonEmptyOrNull(season.CoverBig) ?? GetNonEmptyOrNull(season.Cover);
         }
+
+        cover ??= GetNonEmptyOrNull(serie.Cover)
+            ?? serie.BackdropPaths?.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p));
 
         return new()
         {
@@ -228,12 +249,15 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
                 episode.ContainerExtension,
                 durationSecs: episode.Info?.DurationSecs,
                 videoInfo: episode.Info?.Video,
-                audioInfo: episode.Info?.Audio)
+                audioInfo: episode.Info?.Audio,
+                name: !string.IsNullOrWhiteSpace(parsedName.Title) ? parsedName.Title : $"Episode {episode.EpisodeNum}")
         ];
 
-        string? cover = episode.Info?.MovieImage;
-        cover ??= season?.Cover;
-        cover ??= serie.Cover;
+        string? cover = GetNonEmptyOrNull(episode.Info?.MovieImage)
+            ?? GetNonEmptyOrNull(season?.CoverBig)
+            ?? GetNonEmptyOrNull(season?.Cover)
+            ?? GetNonEmptyOrNull(serie.Cover)
+            ?? serie.BackdropPaths?.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p));
 
         return new()
         {
@@ -247,7 +271,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             MediaSources = sources,
             MediaType = ChannelMediaType.Video,
             Name = $"Episode {episode.EpisodeNum}",
-            Overview = episode.Info?.Plot,
+            Overview = GetNonEmptyOrNull(episode.Info?.Plot),
             ParentIndexNumber = episode.Season,
             People = GetPeople(serie.Cast),
             RunTimeTicks = episode.Info?.DurationSecs * TimeSpan.TicksPerSecond,

@@ -118,8 +118,13 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
 
     private async Task<ChannelItemInfo> CreateChannelItemInfo(StreamInfo stream)
     {
-        long added = long.Parse(stream.Added, CultureInfo.InvariantCulture);
         ParsedName parsedName = StreamService.ParseName(stream.Name);
+
+        DateTime? dateCreated = null;
+        if (!string.IsNullOrWhiteSpace(stream.Added) && long.TryParse(stream.Added, CultureInfo.InvariantCulture, out long added) && added > 0)
+        {
+            dateCreated = DateTimeOffset.FromUnixTimeSeconds(added).DateTime;
+        }
 
         // Fetch detailed VOD info to get duration and other metadata
         VodStreamInfo? vodInfo = null;
@@ -140,15 +145,19 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
                 stream.ContainerExtension,
                 durationSecs: vodInfo?.Info?.DurationSecs,
                 videoInfo: vodInfo?.Info?.Video,
-                audioInfo: vodInfo?.Info?.Audio)
+                audioInfo: vodInfo?.Info?.Audio,
+                name: parsedName.Title)
         ];
+
+        string? imageUrl = !string.IsNullOrWhiteSpace(stream.StreamIcon) ? stream.StreamIcon : null;
+        imageUrl ??= !string.IsNullOrWhiteSpace(vodInfo?.Info?.MovieImage) ? vodInfo.Info.MovieImage : null;
 
         ChannelItemInfo result = new ChannelItemInfo()
         {
             ContentType = ChannelMediaContentType.Movie,
-            DateCreated = DateTimeOffset.FromUnixTimeSeconds(added).DateTime,
+            DateCreated = dateCreated,
             Id = $"{StreamService.StreamPrefix}{stream.StreamId}",
-            ImageUrl = stream.StreamIcon,
+            ImageUrl = imageUrl,
             IsLiveStream = false,
             MediaSources = sources,
             MediaType = ChannelMediaType.Video,

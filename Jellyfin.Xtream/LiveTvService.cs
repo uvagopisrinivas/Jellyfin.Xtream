@@ -59,11 +59,12 @@ public class LiveTvService(IServerApplicationHost appHost, IHttpClientFactory ht
         foreach (StreamInfo channel in await plugin.StreamService.GetLiveStreamsWithOverrides(cancellationToken).ConfigureAwait(false))
         {
             ParsedName parsed = StreamService.ParseName(channel.Name);
+            string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
             items.Add(new ChannelInfo()
             {
                 Id = StreamService.ToGuid(StreamService.LiveTvPrefix, channel.StreamId, 0, 0).ToString(),
                 Number = channel.Num.ToString(CultureInfo.InvariantCulture),
-                ImageUrl = channel.StreamIcon,
+                ImageUrl = imageUrl,
                 Name = parsed.Title,
                 Tags = parsed.Tags,
             });

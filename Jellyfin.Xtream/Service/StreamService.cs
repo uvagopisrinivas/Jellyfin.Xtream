@@ -175,8 +175,8 @@ public partial class StreamService(IXtreamClient xtreamClient)
             if (config.LiveTvOverrides.TryGetValue(stream.StreamId, out ChannelOverrides? overrides))
             {
                 stream.Num = overrides.Number ?? stream.Num;
-                stream.Name = overrides.Name ?? stream.Name;
-                stream.StreamIcon = overrides.LogoUrl ?? stream.StreamIcon;
+                stream.Name = !string.IsNullOrWhiteSpace(overrides.Name) ? overrides.Name : stream.Name;
+                stream.StreamIcon = !string.IsNullOrWhiteSpace(overrides.LogoUrl) ? overrides.LogoUrl : stream.StreamIcon;
             }
 
             return stream;
@@ -376,6 +376,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
     /// <param name="durationSecs">The duration in seconds of the stream (for VOD/Series).</param>
     /// <param name="videoInfo">The Xtream video info if known.</param>
     /// <param name="audioInfo">The Xtream audio info if known.</param>
+    /// <param name="name">The display name for the media source.</param>
     /// <returns>The media source info as <see cref="MediaSourceInfo"/> class.</returns>
     public MediaSourceInfo GetMediaSourceInfo(
         StreamType type,
@@ -386,7 +387,8 @@ public partial class StreamService(IXtreamClient xtreamClient)
         int durationMinutes = 0,
         int? durationSecs = null,
         VideoInfo? videoInfo = null,
-        AudioInfo? audioInfo = null)
+        AudioInfo? audioInfo = null,
+        string? name = null)
     {
         string prefix = string.Empty;
         switch (type)
@@ -462,7 +464,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
             IsRemote = true,
             RunTimeTicks = durationSecs.HasValue ? durationSecs.Value * TimeSpan.TicksPerSecond : null,
             MediaStreams = mediaStreams,
-            Name = "default",
+            Name = !string.IsNullOrWhiteSpace(name) ? name : "default",
             Path = uri,
             Protocol = MediaProtocol.Http,
             RequiresClosing = restream,

@@ -125,10 +125,11 @@ public class CatchupChannel(ILogger<CatchupChannel> logger, IXtreamClient xtream
             }
 
             ParsedName parsedName = StreamService.ParseName(channel.Name);
+            string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
             items.Add(new ChannelItemInfo()
             {
                 Id = StreamService.ToGuid(StreamService.CatchupPrefix, channel.CategoryId ?? 0, channel.StreamId, 0).ToString(),
-                ImageUrl = channel.StreamIcon,
+                ImageUrl = imageUrl,
                 Name = parsedName.Title,
                 Tags = new List<string>(parsedName.Tags),
                 Type = ChannelItemType.Folder,
@@ -151,6 +152,7 @@ public class CatchupChannel(ILogger<CatchupChannel> logger, IXtreamClient xtream
         StreamInfo channel = streams.FirstOrDefault(s => s.StreamId == channelId)
             ?? throw new ArgumentException($"Channel with id {channelId} not found in category {categoryId}");
         ParsedName parsedName = StreamService.ParseName(channel.Name);
+        string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
 
         List<ChannelItemInfo> items = [];
         for (int i = 0; i <= channel.TvArchiveDuration; i++)
@@ -160,7 +162,7 @@ public class CatchupChannel(ILogger<CatchupChannel> logger, IXtreamClient xtream
             items.Add(new()
             {
                 Id = StreamService.ToGuid(StreamService.CatchupPrefix, channel.CategoryId ?? 0, channel.StreamId, day).ToString(),
-                ImageUrl = channel.StreamIcon,
+                ImageUrl = imageUrl,
                 Name = channelDay.ToLocalTime().ToString("ddd dd'-'MM'-'yyyy", CultureInfo.InvariantCulture),
                 Tags = new List<string>(parsedName.Tags),
                 Type = ChannelItemType.Folder,
