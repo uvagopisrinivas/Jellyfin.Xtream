@@ -1,0 +1,28 @@
+[
+  {
+    "guid": "5d774c35-8567-46d3-a950-9bb8227a0c5d",
+    "name": "Jellyfin Xtream",
+    "overview": "Stream content from an Xtream-compatible server.",
+    "description": "Stream Live IPTV, Video On-Demand, and Series from an Xtream-compatible server using this plugin.",
+    "owner": "uvagopisrinivas",
+    "category": "LiveTV",
+    "versions": [
+      {
+        "version": "0.9.1.0",
+        "changelog": "Fix null/empty string handling for images, subtitles, and metadata across all channels",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.1/Jellyfin.Xtream.dll",
+        "checksum": "9410de65eb1859d2a4aa53b71681bb113d2f514fffa9171a5fdfcbde480f1f47",
+        "timestamp": "2026-04-19T14:35:00Z"
+      },
+      {
+        "version": "0.9.0.0",
+        "changelog": "Allow SDK roll forward to latest major version",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.0/Jellyfin.Xtream.dll",
+        "checksum": "",
+        "timestamp": "2026-04-19T00:00:00Z"
+      }
+    ]
+  }
+]
