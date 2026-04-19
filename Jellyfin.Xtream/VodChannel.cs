@@ -168,6 +168,13 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
             ProviderIds = { { XtreamVodProvider.ProviderName, stream.StreamId.ToString(CultureInfo.InvariantCulture) } },
         };
 
+        // Include the TMDB ID so Jellyfin metadata providers (and subtitle
+        // providers that rely on external IDs) can identify the movie.
+        if (vodInfo?.Info?.TmdbId is int tmdbId)
+        {
+            result.ProviderIds[MetadataProvider.Tmdb.ToString()] = tmdbId.ToString(CultureInfo.InvariantCulture);
+        }
+
         return result;
     }
 
