@@ -185,27 +185,34 @@ curl "http://your-provider:port/player_api.php?username=USER&password=PASS&actio
 
 ### Version Management
 
-Update version in two files before release:
+Update version in three places before release:
 
-1. `build.yaml` - `version: "0.9.X.0"`
-2. `Jellyfin.Xtream/Jellyfin.Xtream.csproj` - `<AssemblyVersion>` and `<FileVersion>`
+1. `Jellyfin.Xtream/Jellyfin.Xtream.csproj` - `<AssemblyVersion>` and `<FileVersion>`
+2. `build.yaml` - `version: "0.9.X.0"`
+3. `README.md` - `VERSION="0.9.X"` in deploy script, and add entry to Version History
 
 ### Creating a Release
 
 ```bash
-# 1. Update version in build.yaml and csproj
-# 2. Commit and tag
+# 1. Update version numbers (all three places)
+#    - Jellyfin.Xtream/Jellyfin.Xtream.csproj → <AssemblyVersion> and <FileVersion>
+#    - build.yaml → version
+#    - README.md → VERSION in deploy script, and add entry to Version History
+
+# 2. Build release
+dotnet build -c Release Jellyfin.Xtream/Jellyfin.Xtream.csproj
+
+# 3. Commit, tag, and push
 git add -A
 git commit -m "v0.9.X - Description of changes"
 git tag v0.9.X
 git push origin master --tags
 
-# 3. Build and create GitHub release (uploads DLL as release asset)
-dotnet build -c Release Jellyfin.Xtream/Jellyfin.Xtream.csproj
+# 4. Create GitHub Release with DLL attached (this is what makes it show as "Latest")
 gh release create v0.9.X Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll \
-  --title "v0.9.X" --notes "Description of changes"
+  --title "v0.9.X" --notes "Description of changes" --latest
 
-# 4. The publish.yaml workflow will auto-update repository.json on gh-pages
+# 5. The publish.yaml workflow will auto-update repository.json on gh-pages
 #    If it doesn't, manually update gh-pages:
 git checkout gh-pages
 # Edit repository.json to add new version entry
@@ -214,6 +221,10 @@ git commit -m "Update repository.json for v0.9.X"
 git push origin gh-pages
 git checkout master
 ```
+
+> **Important:** Pushing a git tag alone does NOT create a GitHub Release.
+> You must run `gh release create` (or create it via the GitHub web UI) for
+> the release to appear on the Releases page and be marked as "Latest".
 
 ### Plugin Repository (GitHub Pages)
 
