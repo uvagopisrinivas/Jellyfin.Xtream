@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.2"
+VERSION="0.9.3"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -299,6 +299,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.3** - Add per-item error handling across all channels to prevent plugin crashes from malformed API data
 - **v0.9.2** - Add TMDB provider ID to VOD channel items for better subtitle provider support
 - **v0.9.1** - Fix null/empty string handling for images, subtitles, and metadata across all channels
 - **v0.9.0** - Allow SDK roll forward to latest major version

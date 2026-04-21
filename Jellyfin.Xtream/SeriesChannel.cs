@@ -134,7 +134,10 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get channel items for FolderId: {FolderId}", folderId);
-            throw;
+            return new ChannelItemResult()
+            {
+                TotalRecordCount = 0,
+            };
         }
 
         logger.LogWarning("Returning empty result for FolderId: {FolderId}", folderId);
@@ -299,7 +302,20 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     {
         logger.LogInformation("GetSeries: Fetching series for category {CategoryId}", categoryId);
         IEnumerable<Series> series = await Plugin.Instance.StreamService.GetSeries(categoryId, cancellationToken).ConfigureAwait(false);
-        List<ChannelItemInfo> items = new(series.Select(CreateChannelItemInfo));
+        List<ChannelItemInfo> items = [];
+
+        foreach (var s in series)
+        {
+            try
+            {
+                items.Add(CreateChannelItemInfo(s));
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Skipping series {SeriesId} in category {CategoryId} due to error", s.SeriesId, categoryId);
+            }
+        }
+
         logger.LogInformation("GetSeries: Returning {Count} series for category {CategoryId}", items.Count, categoryId);
         return new()
         {
@@ -311,8 +327,19 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     private async Task<ChannelItemResult> GetSeasons(int seriesId, CancellationToken cancellationToken)
     {
         IEnumerable<Tuple<SeriesStreamInfo, int>> seasons = await Plugin.Instance.StreamService.GetSeasons(seriesId, cancellationToken).ConfigureAwait(false);
-        List<ChannelItemInfo> items = new(
-            seasons.Select((Tuple<SeriesStreamInfo, int> tuple) => CreateChannelItemInfo(seriesId, tuple.Item1, tuple.Item2)));
+        List<ChannelItemInfo> items = [];
+
+        foreach (var tuple in seasons)
+        {
+            try
+            {
+                items.Add(CreateChannelItemInfo(seriesId, tuple.Item1, tuple.Item2));
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Skipping season {SeasonId} for series {SeriesId} due to error", tuple.Item2, seriesId);
+            }
+        }
 
         logger.LogInformation("GetSeasons for seriesId {SeriesId}: Found {Count} seasons", seriesId, items.Count);
 
@@ -326,8 +353,25 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     private async Task<ChannelItemResult> GetEpisodes(int seriesId, int seasonId, CancellationToken cancellationToken)
     {
         IEnumerable<Tuple<SeriesStreamInfo, Season?, Episode>> episodes = await Plugin.Instance.StreamService.GetEpisodes(seriesId, seasonId, cancellationToken).ConfigureAwait(false);
-        List<ChannelItemInfo> items = new List<ChannelItemInfo>(
-            episodes.Select((Tuple<SeriesStreamInfo, Season?, Episode> tuple) => CreateChannelItemInfo(tuple.Item1, tuple.Item2, tuple.Item3)));
+        List<ChannelItemInfo> items = [];
+
+        foreach (var tuple in episodes)
+        {
+            try
+            {
+                items.Add(CreateChannelItemInfo(tuple.Item1, tuple.Item2, tuple.Item3));
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Skipping episode {EpisodeId} (S{SeasonId}E{EpisodeNum}) for series {SeriesId} due to error",
+                    tuple.Item3.EpisodeId,
+                    tuple.Item3.Season,
+                    tuple.Item3.EpisodeNum,
+                    seriesId);
+            }
+        }
 
         logger.LogInformation("GetEpisodes for seriesId {SeriesId}, seasonId {SeasonId}: Found {Count} episodes", seriesId, seasonId, items.Count);
 

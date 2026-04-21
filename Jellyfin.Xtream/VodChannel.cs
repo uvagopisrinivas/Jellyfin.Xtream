@@ -112,7 +112,10 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get channel items");
-            throw;
+            return new ChannelItemResult()
+            {
+                TotalRecordCount = 0,
+            };
         }
     }
 
@@ -181,8 +184,20 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
     private async Task<ChannelItemResult> GetCategories(CancellationToken cancellationToken)
     {
         IEnumerable<Category> categories = await Plugin.Instance.StreamService.GetVodCategories(cancellationToken).ConfigureAwait(false);
-        List<ChannelItemInfo> items = new List<ChannelItemInfo>(
-            categories.Select((Category category) => StreamService.CreateChannelItemInfo(StreamService.VodCategoryPrefix, category)));
+        List<ChannelItemInfo> items = [];
+
+        foreach (var category in categories)
+        {
+            try
+            {
+                items.Add(StreamService.CreateChannelItemInfo(StreamService.VodCategoryPrefix, category));
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Skipping VOD category {CategoryId} due to error", category.CategoryId);
+            }
+        }
+
         return new()
         {
             Items = items,
@@ -193,13 +208,25 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
     private async Task<ChannelItemResult> GetStreams(int categoryId, CancellationToken cancellationToken)
     {
         IEnumerable<StreamInfo> streams = await Plugin.Instance.StreamService.GetVodStreams(categoryId, cancellationToken).ConfigureAwait(false);
-        List<ChannelItemInfo> items = [.. await Task.WhenAll(streams.Select(CreateChannelItemInfo)).ConfigureAwait(false)];
-        ChannelItemResult result = new ChannelItemResult()
+        List<ChannelItemInfo> items = [];
+
+        foreach (var stream in streams)
+        {
+            try
+            {
+                items.Add(await CreateChannelItemInfo(stream).ConfigureAwait(false));
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Skipping VOD stream {StreamId} in category {CategoryId} due to error", stream.StreamId, categoryId);
+            }
+        }
+
+        return new()
         {
             Items = items,
             TotalRecordCount = items.Count
         };
-        return result;
     }
 
     /// <inheritdoc />

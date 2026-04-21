@@ -108,7 +108,10 @@ public class CatchupChannel(ILogger<CatchupChannel> logger, IXtreamClient xtream
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get channel items");
-            throw;
+            return new ChannelItemResult()
+            {
+                TotalRecordCount = 0,
+            };
         }
     }
 
@@ -124,16 +127,23 @@ public class CatchupChannel(ILogger<CatchupChannel> logger, IXtreamClient xtream
                 continue;
             }
 
-            ParsedName parsedName = StreamService.ParseName(channel.Name);
-            string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
-            items.Add(new ChannelItemInfo()
+            try
             {
-                Id = StreamService.ToGuid(StreamService.CatchupPrefix, channel.CategoryId ?? 0, channel.StreamId, 0).ToString(),
-                ImageUrl = imageUrl,
-                Name = parsedName.Title,
-                Tags = new List<string>(parsedName.Tags),
-                Type = ChannelItemType.Folder,
-            });
+                ParsedName parsedName = StreamService.ParseName(channel.Name);
+                string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
+                items.Add(new ChannelItemInfo()
+                {
+                    Id = StreamService.ToGuid(StreamService.CatchupPrefix, channel.CategoryId ?? 0, channel.StreamId, 0).ToString(),
+                    ImageUrl = imageUrl,
+                    Name = parsedName.Title,
+                    Tags = new List<string>(parsedName.Tags),
+                    Type = ChannelItemType.Folder,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Skipping catchup channel {StreamId} due to error", channel.StreamId);
+            }
         }
 
         ChannelItemResult result = new ChannelItemResult()
@@ -217,28 +227,35 @@ public class CatchupChannel(ILogger<CatchupChannel> logger, IXtreamClient xtream
 
         foreach (EpgInfo epg in epgs.Listings.Where(epg => epg.Start <= end && epg.End >= start))
         {
-            ParsedName parsedName = StreamService.ParseName(epg.Title);
-            int durationMinutes = (int)Math.Ceiling((epg.End - epg.Start).TotalMinutes);
-            string dateTitle = epg.Start.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture);
-            List<MediaSourceInfo> sources = [
-                plugin.StreamService.GetMediaSourceInfo(StreamType.CatchUp, channelId, start: epg.StartLocalTime, durationMinutes: durationMinutes)
-            ];
-
-            items.Add(new()
+            try
             {
-                ContentType = ChannelMediaContentType.TvExtra,
-                DateCreated = epg.Start,
-                Id = StreamService.ToGuid(StreamService.CatchupStreamPrefix, channel.StreamId, epg.Id, day).ToString(),
-                IsLiveStream = false,
-                MediaSources = sources,
-                MediaType = ChannelMediaType.Video,
-                Name = $"{dateTitle} - {parsedName.Title}",
-                Overview = epg.Description,
-                PremiereDate = epg.Start,
-                RunTimeTicks = durationMinutes * TimeSpan.TicksPerMinute,
-                Tags = new List<string>(parsedName.Tags),
-                Type = ChannelItemType.Media,
-            });
+                ParsedName parsedName = StreamService.ParseName(epg.Title);
+                int durationMinutes = (int)Math.Ceiling((epg.End - epg.Start).TotalMinutes);
+                string dateTitle = epg.Start.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture);
+                List<MediaSourceInfo> sources = [
+                    plugin.StreamService.GetMediaSourceInfo(StreamType.CatchUp, channelId, start: epg.StartLocalTime, durationMinutes: durationMinutes)
+                ];
+
+                items.Add(new()
+                {
+                    ContentType = ChannelMediaContentType.TvExtra,
+                    DateCreated = epg.Start,
+                    Id = StreamService.ToGuid(StreamService.CatchupStreamPrefix, channel.StreamId, epg.Id, day).ToString(),
+                    IsLiveStream = false,
+                    MediaSources = sources,
+                    MediaType = ChannelMediaType.Video,
+                    Name = $"{dateTitle} - {parsedName.Title}",
+                    Overview = epg.Description,
+                    PremiereDate = epg.Start,
+                    RunTimeTicks = durationMinutes * TimeSpan.TicksPerMinute,
+                    Tags = new List<string>(parsedName.Tags),
+                    Type = ChannelItemType.Media,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Skipping catchup EPG entry {EpgId} for channel {ChannelId} due to error", epg.Id, channelId);
+            }
         }
 
         ChannelItemResult result = new()

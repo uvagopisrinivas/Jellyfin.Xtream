@@ -58,16 +58,23 @@ public class LiveTvService(IServerApplicationHost appHost, IHttpClientFactory ht
         List<ChannelInfo> items = [];
         foreach (StreamInfo channel in await plugin.StreamService.GetLiveStreamsWithOverrides(cancellationToken).ConfigureAwait(false))
         {
-            ParsedName parsed = StreamService.ParseName(channel.Name);
-            string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
-            items.Add(new ChannelInfo()
+            try
             {
-                Id = StreamService.ToGuid(StreamService.LiveTvPrefix, channel.StreamId, 0, 0).ToString(),
-                Number = channel.Num.ToString(CultureInfo.InvariantCulture),
-                ImageUrl = imageUrl,
-                Name = parsed.Title,
-                Tags = parsed.Tags,
-            });
+                ParsedName parsed = StreamService.ParseName(channel.Name);
+                string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
+                items.Add(new ChannelInfo()
+                {
+                    Id = StreamService.ToGuid(StreamService.LiveTvPrefix, channel.StreamId, 0, 0).ToString(),
+                    Number = channel.Num.ToString(CultureInfo.InvariantCulture),
+                    ImageUrl = imageUrl,
+                    Name = parsed.Title,
+                    Tags = parsed.Tags,
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Skipping live channel {StreamId} due to error", channel.StreamId);
+            }
         }
 
         return items;
@@ -178,15 +185,22 @@ public class LiveTvService(IServerApplicationHost appHost, IHttpClientFactory ht
                 EpgListings epgs = await xtreamClient.GetEpgInfoAsync(plugin.Creds, streamId, cancellationToken).ConfigureAwait(false);
                 foreach (EpgInfo epg in epgs.Listings)
                 {
-                    items.Add(new()
+                    try
                     {
-                        Id = StreamService.ToGuid(StreamService.EpgPrefix, streamId, epg.Id, 0).ToString(),
-                        ChannelId = channelId,
-                        StartDate = epg.Start,
-                        EndDate = epg.End,
-                        Name = epg.Title,
-                        Overview = epg.Description,
-                    });
+                        items.Add(new()
+                        {
+                            Id = StreamService.ToGuid(StreamService.EpgPrefix, streamId, epg.Id, 0).ToString(),
+                            ChannelId = channelId,
+                            StartDate = epg.Start,
+                            EndDate = epg.End,
+                            Name = epg.Title,
+                            Overview = epg.Description,
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Skipping EPG entry {EpgId} for channel {ChannelId} due to error", epg.Id, channelId);
+                    }
                 }
             }
 
