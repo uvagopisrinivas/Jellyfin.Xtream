@@ -169,7 +169,7 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
                 durationSecs: vodInfo?.Info?.DurationSecs,
                 videoInfo: vodInfo?.Info?.Video,
                 audioInfo: vodInfo?.Info?.Audio,
-                name: parsedName.Title)
+                name: stream.Name)
         ];
 
         string? imageUrl = !string.IsNullOrWhiteSpace(stream.StreamIcon) ? stream.StreamIcon : null;

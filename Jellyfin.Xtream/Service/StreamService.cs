@@ -94,12 +94,14 @@ public partial class StreamService(IXtreamClient xtreamClient)
     private static readonly Regex _tagRegex = TagRegex();
 
     /// <summary>
-    /// Map of common language names to ISO 639-2/B codes used by Jellyfin.
+    /// Map of common language names and abbreviations to ISO 639-2/B codes used by Jellyfin.
+    /// Includes common misspellings found in Xtream provider titles.
     /// </summary>
     private static readonly Dictionary<string, string> LanguageMap = new(StringComparer.OrdinalIgnoreCase)
     {
         { "TELUGU", "tel" },
         { "TEL", "tel" },
+        { "TELGUE", "tel" },
         { "TAMIL", "tam" },
         { "TAM", "tam" },
         { "HINDI", "hin" },
@@ -108,8 +110,10 @@ public partial class StreamService(IXtreamClient xtreamClient)
         { "ENG", "eng" },
         { "KANNADA", "kan" },
         { "KAN", "kan" },
+        { "KANNDA", "kan" },
         { "MALAYALAM", "mal" },
         { "MAL", "mal" },
+        { "MALYALAM", "mal" },
         { "BENGALI", "ben" },
         { "BEN", "ben" },
         { "MARATHI", "mar" },
@@ -155,6 +159,10 @@ public partial class StreamService(IXtreamClient xtreamClient)
         { "TUR", "tur" },
         { "POLISH", "pol" },
         { "POL", "pol" },
+        { "PERSIAN", "per" },
+        { "PER", "per" },
+        { "HUNGARIAN", "hun" },
+        { "HUN", "hun" },
     };
 
     /// <summary>
@@ -511,9 +519,18 @@ public partial class StreamService(IXtreamClient xtreamClient)
             var languages = ParseLanguagesFromName(name);
             if (languages.Count > 0)
             {
+                string preferredLang = Plugin.Instance.Configuration.PreferredAudioLanguage;
                 int audioIndex = videoInfo != null ? 1 : 0;
+
+                // If preferred language is found, use its position; otherwise default to first track
+                bool preferredFound = languages.Any(l => string.Equals(l.Code, preferredLang, StringComparison.OrdinalIgnoreCase));
+
                 foreach (var (langName, isoCode) in languages)
                 {
+                    bool isDefault = preferredFound
+                        ? string.Equals(isoCode, preferredLang, StringComparison.OrdinalIgnoreCase)
+                        : audioIndex == (videoInfo != null ? 1 : 0);
+
                     var stream = new MediaBrowser.Model.Entities.MediaStream()
                     {
                         Codec = audioInfo?.CodecName ?? "aac",
@@ -523,7 +540,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
                         Language = isoCode,
                         Title = langName,
                         Type = MediaStreamType.Audio,
-                        IsDefault = audioIndex == (videoInfo != null ? 2 : 1),
+                        IsDefault = isDefault,
                     };
 
                     if (audioInfo != null)
@@ -590,41 +607,125 @@ public partial class StreamService(IXtreamClient xtreamClient)
 
     /// <summary>
     /// Parses language names from a stream title.
-    /// Looks for patterns like "Telugu + Tamil + Hindi + Eng" or "(Hindi+Telugu+Tamil)".
+    /// Handles all common Xtream provider patterns:
+    /// <list>
+    /// <item>"Telugu + Tamil + Hindi + Eng" (plus-separated)</item>
+    /// <item>"(Hindi+Kannada+Malayalam+Telugu+Tamil)" (plus inside parens)</item>
+    /// <item>"(Hindi)(Kannada)(Malayalam)(Tamil)(Telugu)" (individual parens)</item>
+    /// <item>"[Tam, Tel, Hin, Eng]" (brackets with commas)</item>
+    /// <item>"(Tam, Tel, Hin, Eng)" (parens with commas)</item>
+    /// <item>"Hindi &amp; English" (ampersand-separated)</item>
+    /// <item>"(Telugu) (Tamil) (Hindi)" (spaced individual parens)</item>
+    /// </list>
     /// </summary>
     /// <param name="name">The stream name/title.</param>
     /// <returns>A list of (display name, ISO 639-2 code) tuples.</returns>
     private static List<(string Name, string Code)> ParseLanguagesFromName(string name)
     {
-        List<(string, string)> result = [];
+        List<(string Name, string Code)> result = [];
 
-        // Match patterns like "Telugu + Tamil + Hindi + Eng" or "(Hindi+Telugu+Tamil)"
-        var match = LanguagePatternRegex().Match(name);
-        if (!match.Success)
+        // 1. Try [Lang, Lang, ...] pattern
+        var bracketMatch = BracketLanguageRegex().Match(name);
+        if (bracketMatch.Success)
         {
-            return result;
+            AddLanguagesFromDelimitedString(bracketMatch.Groups[1].Value, result);
         }
 
-        string langString = match.Groups[1].Value;
-        string[] parts = langString.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (string part in parts)
+        // 2. Try (Lang+Lang) or (Lang, Lang) or (Lang & Lang) — delimiters inside single parens
+        if (result.Count == 0)
         {
-            string normalized = part.Trim().TrimEnd(')').Trim();
-            if (LanguageMap.TryGetValue(normalized.ToUpperInvariant(), out string? code))
+            var parenMatch = ParenDelimitedLanguageRegex().Match(name);
+            if (parenMatch.Success)
             {
-                result.Add((normalized, code));
+                AddLanguagesFromDelimitedString(parenMatch.Groups[1].Value, result);
+            }
+        }
+
+        // 3. Try (Lang)(Lang)(Lang) or (Lang) (Lang) (Lang) — individual parens
+        if (result.Count == 0)
+        {
+            var matches = SingleParenLanguageRegex().Matches(name);
+            if (matches.Count >= 2)
+            {
+                foreach (Match m in matches)
+                {
+                    TryAddLanguage(m.Groups[1].Value.Trim(), result);
+                }
+            }
+        }
+
+        // 4. Try trailing "Lang + Lang + Lang" or "Lang & Lang" after year/title
+        if (result.Count == 0)
+        {
+            var trailingMatch = TrailingLanguageRegex().Match(name);
+            if (trailingMatch.Success)
+            {
+                AddLanguagesFromDelimitedString(trailingMatch.Groups[1].Value, result);
+            }
+        }
+
+        // 5. Fallback: scan for any single language word with word boundary checks
+        if (result.Count == 0)
+        {
+            foreach (var kvp in LanguageMap)
+            {
+                if (name.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
+                {
+                    int idx = name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase);
+                    bool startOk = idx == 0 || !char.IsLetterOrDigit(name[idx - 1]);
+                    bool endOk = (idx + kvp.Key.Length) >= name.Length || !char.IsLetterOrDigit(name[idx + kvp.Key.Length]);
+
+                    if (startOk && endOk && !result.Any(r => string.Equals(r.Code, kvp.Value, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        result.Add((kvp.Key, kvp.Value));
+                    }
+                }
             }
         }
 
         return result;
     }
 
-    [GeneratedRegex(@"(?:Telugu|Tamil|Hindi|Eng(?:lish)?|Kannada|Malayalam|Bengali|Marathi|Gujarati|Punjabi|Urdu|Odia|Oriya|Spanish|French|German|Italian|Portuguese|Russian|Japanese|Korean|Chinese|Arabic|Thai|Dutch|Swedish|Turkish|Polish)\s*\+\s*(?:Telugu|Tamil|Hindi|Eng(?:lish)?|Kannada|Malayalam|Bengali|Marathi|Gujarati|Punjabi|Urdu|Odia|Oriya|Spanish|French|German|Italian|Portuguese|Russian|Japanese|Korean|Chinese|Arabic|Thai|Dutch|Swedish|Turkish|Polish)[\s\+\w\)]*", RegexOptions.IgnoreCase)]
-    private static partial Regex LanguageListRegex();
+    /// <summary>
+    /// Splits a delimited string on +, &amp;, and comma, then maps each token to a language.
+    /// </summary>
+    private static void AddLanguagesFromDelimitedString(string input, List<(string Name, string Code)> result)
+    {
+        string[] parts = input.Split(['+', ',', '&'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        foreach (string part in parts)
+        {
+            TryAddLanguage(part, result);
+        }
+    }
 
-    [GeneratedRegex(@"[\(\s]*((?:Telugu|Tamil|Hindi|Eng(?:lish)?|Kannada|Malayalam|Bengali|Marathi|Gujarati|Punjabi|Urdu|Odia|Oriya|Spanish|French|German|Italian|Portuguese|Russian|Japanese|Korean|Chinese|Arabic|Thai|Dutch|Swedish|Turkish|Polish)(?:\s*\+\s*(?:Telugu|Tamil|Hindi|Eng(?:lish)?|Kannada|Malayalam|Bengali|Marathi|Gujarati|Punjabi|Urdu|Odia|Oriya|Spanish|French|German|Italian|Portuguese|Russian|Japanese|Korean|Chinese|Arabic|Thai|Dutch|Swedish|Turkish|Polish))+)", RegexOptions.IgnoreCase)]
-    private static partial Regex LanguagePatternRegex();
+    /// <summary>
+    /// Tries to add a single language token to the result list, avoiding duplicates.
+    /// </summary>
+    private static void TryAddLanguage(string token, List<(string Name, string Code)> result)
+    {
+        string cleaned = token.Trim().Trim('(', ')', '[', ']').Trim();
+        if (LanguageMap.TryGetValue(cleaned.ToUpperInvariant(), out string? code)
+            && !result.Any(r => string.Equals(r.Code, code, StringComparison.OrdinalIgnoreCase)))
+        {
+            result.Add((cleaned, code));
+        }
+    }
+
+    /// <summary>Matches [content] for bracket-delimited language lists.</summary>
+    [GeneratedRegex(@"\[([^\]]+)\]")]
+    private static partial Regex BracketLanguageRegex();
+
+    /// <summary>Matches (content) where content contains +, comma, or &amp; delimiters.</summary>
+    [GeneratedRegex(@"\(([^)]*[\+,&][^)]*)\)")]
+    private static partial Regex ParenDelimitedLanguageRegex();
+
+    /// <summary>Matches individual (word) tokens for patterns like (Hindi)(Telugu)(Tamil).</summary>
+    [GeneratedRegex(@"\((\w+)\)")]
+    private static partial Regex SingleParenLanguageRegex();
+
+    /// <summary>Matches trailing language list after closing paren, e.g. ") Telugu + Tamil + Hindi".</summary>
+    [GeneratedRegex(@"\)\s+([\w\s\+&,]+)$")]
+    private static partial Regex TrailingLanguageRegex();
 
     [GeneratedRegex(@"\[([^\]]+)\]|\|([^\|]+)\|")]
     private static partial Regex TagRegex();

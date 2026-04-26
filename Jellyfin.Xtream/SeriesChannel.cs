@@ -274,7 +274,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
                 durationSecs: episode.Info?.DurationSecs,
                 videoInfo: episode.Info?.Video,
                 audioInfo: episode.Info?.Audio,
-                name: !string.IsNullOrWhiteSpace(parsedName.Title) ? parsedName.Title : $"Episode {episode.EpisodeNum}")
+                name: !string.IsNullOrWhiteSpace(episode.Title) ? episode.Title : $"Episode {episode.EpisodeNum}")
         ];
 
         string? cover = GetNonEmptyOrNull(episode.Info?.MovieImage)

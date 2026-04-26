@@ -83,5 +83,12 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets the channel override configuration for Live TV.
     /// </summary>
     public SerializableDictionary<int, ChannelOverrides> LiveTvOverrides { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the preferred audio language ISO 639-2 code (e.g. "tel" for Telugu).
+    /// When multiple audio tracks are detected from the stream title, the track matching
+    /// this language will be set as the default.
+    /// </summary>
+    public string PreferredAudioLanguage { get; set; } = "tel";
 }
 #pragma warning restore CA2227
