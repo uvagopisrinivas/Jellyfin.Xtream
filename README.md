@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.6"
+VERSION="0.9.10"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -370,6 +370,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.10** - Performance: defer per-item VOD info fetching to metadata refresh, reducing folder load from ~90s to under 3s for large categories.
 - **v0.9.6** - Parse audio languages from stream titles to populate multi-track audio in player UI. Restored IDisableMediaSourceDisplay to prevent probe errors.
 - **v0.9.5** - Enable audio track discovery for VOD/Series: removed IDisableMediaSourceDisplay so Jellyfin probes remote streams and discovers all audio languages. Added diagnostic logging for Xtream API audio info.
 - **v0.9.4** - Audio language track discovery: leave MediaStreams empty for VOD/Series so Jellyfin probes all audio tracks.
@@ -431,9 +432,8 @@ docker start jellyfin
 - `GetMediaSourceInfo()`: Added durationSecs parameter and RunTimeTicks setting
 
 **VodChannel.cs:**
-- Added IXtreamClient dependency injection
-- Fetches detailed VOD info to get duration
-- Sets RunTimeTicks on ChannelItemInfo
+- Deferred VOD info fetching to XtreamVodProvider metadata refresh for fast browsing
+- Builds channel items from stream list data only (single API call per category)
 
 **SeriesChannel.cs:**
 - Passes episode duration to GetMediaSourceInfo()
