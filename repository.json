@@ -8,6 +8,30 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.4.0",
+        "changelog": "Audio language track discovery: let Jellyfin probe VOD/Series for all audio tracks. Added diagnostic logging for Xtream API audio info.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.4/Jellyfin.Xtream.dll",
+        "checksum": "c8384250a14a0f715830ad46b5f7babdec1ddeabaf67fc8f433e20add1c03309",
+        "timestamp": "2026-04-26T00:00:00Z"
+      },
+      {
+        "version": "0.9.3.0",
+        "changelog": "Add per-item error handling across all channels to prevent plugin crashes from malformed API data",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.3/Jellyfin.Xtream.dll",
+        "checksum": "",
+        "timestamp": "2026-04-20T00:00:00Z"
+      },
+      {
+        "version": "0.9.2.0",
+        "changelog": "Add TMDB provider ID to VOD channel items for better subtitle provider support",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.2/Jellyfin.Xtream.dll",
+        "checksum": "",
+        "timestamp": "2026-04-19T16:00:00Z"
+      },
+      {
         "version": "0.9.1.0",
         "changelog": "Fix null/empty string handling for images, subtitles, and metadata across all channels",
         "targetAbi": "10.11.0.0",
