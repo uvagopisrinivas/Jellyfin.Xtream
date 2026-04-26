@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.9.0",
+        "changelog": "Disable probing when language tracks are parsed to prevent Jellyfin from overriding DefaultAudioStreamIndex",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.9/Jellyfin.Xtream.dll",
+        "checksum": "24566f5c2f8ce1dfe42b19bbf163d61781e8515323e2da9be6d62f2a1202cac0",
+        "timestamp": "2026-04-26T00:00:00Z"
+      },
+      {
         "version": "0.9.8.0",
         "changelog": "Set DefaultAudioStreamIndex on MediaSourceInfo to force preferred language track in ffmpeg transcoding",
         "targetAbi": "10.11.0.0",
