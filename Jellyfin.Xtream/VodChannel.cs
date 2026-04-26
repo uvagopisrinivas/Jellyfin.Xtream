@@ -16,10 +16,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Xtream.Client;
 using Jellyfin.Xtream.Client.Models;
 using Jellyfin.Xtream.Providers;
 using Jellyfin.Xtream.Service;
@@ -36,8 +34,7 @@ namespace Jellyfin.Xtream;
 /// The Xtream Codes API channel.
 /// </summary>
 /// <param name="logger">Instance of the <see cref="ILogger"/> interface.</param>
-/// <param name="xtreamClient">Instance of the <see cref="IXtreamClient"/> interface.</param>
-public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) : IChannel, IDisableMediaSourceDisplay
+public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSourceDisplay
 {
     /// <inheritdoc />
     public string? Name => "Xtream Video On-Demand";
@@ -119,7 +116,7 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
         }
     }
 
-    private async Task<ChannelItemInfo> CreateChannelItemInfo(StreamInfo stream)
+    private static ChannelItemInfo CreateChannelItemInfo(StreamInfo stream)
     {
         ParsedName parsedName = StreamService.ParseName(stream.Name);
 
@@ -129,53 +126,22 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
             dateCreated = DateTimeOffset.FromUnixTimeSeconds(added).DateTime;
         }
 
-        // Fetch detailed VOD info to get duration and other metadata
-        VodStreamInfo? vodInfo = null;
-        try
-        {
-            vodInfo = await xtreamClient.GetVodInfoAsync(Plugin.Instance.Creds, stream.StreamId, CancellationToken.None).ConfigureAwait(false);
-
-            // Log audio info from Xtream API to diagnose multi-language track availability
-            if (vodInfo?.Info?.Audio != null)
-            {
-                var audio = vodInfo.Info.Audio;
-                logger.LogInformation(
-                    "VOD {StreamId} ({Name}) - Xtream API audio info: Codec={Codec}, Channels={Channels}, Layout={Layout}, SampleRate={SampleRate}, Bitrate={Bitrate}, Index={Index}",
-                    stream.StreamId,
-                    stream.Name,
-                    audio.CodecName,
-                    audio.Channels,
-                    audio.ChannelLayout,
-                    audio.SampleRate,
-                    audio.Bitrate,
-                    audio.Index);
-            }
-            else
-            {
-                logger.LogInformation("VOD {StreamId} ({Name}) - Xtream API returned no audio info", stream.StreamId, stream.Name);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to fetch VOD info for stream {StreamId}", stream.StreamId);
-        }
-
+        // Build media source from the stream list data only.
+        // Detailed VOD info (duration, TMDB ID, audio/video codec details) is
+        // fetched later by XtreamVodProvider during metadata refresh, so we
+        // skip the per-item GetVodInfoAsync call here to keep browsing fast.
         List<MediaSourceInfo> sources =
         [
             Plugin.Instance.StreamService.GetMediaSourceInfo(
                 StreamType.Vod,
                 stream.StreamId,
                 stream.ContainerExtension,
-                durationSecs: vodInfo?.Info?.DurationSecs,
-                videoInfo: vodInfo?.Info?.Video,
-                audioInfo: vodInfo?.Info?.Audio,
                 name: stream.Name)
         ];
 
         string? imageUrl = !string.IsNullOrWhiteSpace(stream.StreamIcon) ? stream.StreamIcon : null;
-        imageUrl ??= !string.IsNullOrWhiteSpace(vodInfo?.Info?.MovieImage) ? vodInfo.Info.MovieImage : null;
 
-        ChannelItemInfo result = new ChannelItemInfo()
+        return new ChannelItemInfo()
         {
             ContentType = ChannelMediaContentType.Movie,
             DateCreated = dateCreated,
@@ -185,20 +151,10 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
             MediaSources = sources,
             MediaType = ChannelMediaType.Video,
             Name = parsedName.Title,
-            RunTimeTicks = vodInfo?.Info?.DurationSecs * TimeSpan.TicksPerSecond,
             Tags = new List<string>(parsedName.Tags),
             Type = ChannelItemType.Media,
             ProviderIds = { { XtreamVodProvider.ProviderName, stream.StreamId.ToString(CultureInfo.InvariantCulture) } },
         };
-
-        // Include the TMDB ID so Jellyfin metadata providers (and subtitle
-        // providers that rely on external IDs) can identify the movie.
-        if (vodInfo?.Info?.TmdbId is int tmdbId)
-        {
-            result.ProviderIds[MetadataProvider.Tmdb.ToString()] = tmdbId.ToString(CultureInfo.InvariantCulture);
-        }
-
-        return result;
     }
 
     private async Task<ChannelItemResult> GetCategories(CancellationToken cancellationToken)
@@ -234,7 +190,7 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
         {
             try
             {
-                items.Add(await CreateChannelItemInfo(stream).ConfigureAwait(false));
+                items.Add(CreateChannelItemInfo(stream));
             }
             catch (Exception ex)
             {
