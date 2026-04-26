@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.6.0",
+        "changelog": "Parse audio languages from stream titles, restore IDisableMediaSourceDisplay, audio track discovery for VOD/Series",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.6/Jellyfin.Xtream.dll",
+        "checksum": "df345ad8c443455716443ebeb5c8203a130f773563ef015f30a7f25a7bd80e1a",
+        "timestamp": "2026-04-26T00:00:00Z"
+      },
+      {
         "version": "0.9.5.0",
         "changelog": "Enable audio track discovery for VOD/Series: removed IDisableMediaSourceDisplay so Jellyfin probes remote streams and discovers all audio languages. Added diagnostic logging for Xtream API audio info.",
         "targetAbi": "10.11.0.0",
