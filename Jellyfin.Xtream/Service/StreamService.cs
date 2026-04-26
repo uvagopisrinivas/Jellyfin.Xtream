@@ -585,9 +585,21 @@ public partial class StreamService(IXtreamClient xtreamClient)
             });
         }
 
+        // Determine the default audio stream index based on preferred language
+        int? defaultAudioStreamIndex = null;
+        foreach (var ms in mediaStreams)
+        {
+            if (ms.Type == MediaStreamType.Audio && ms.IsDefault)
+            {
+                defaultAudioStreamIndex = ms.Index;
+                break;
+            }
+        }
+
         return new MediaSourceInfo()
         {
             Container = extension,
+            DefaultAudioStreamIndex = defaultAudioStreamIndex,
             EncoderProtocol = MediaProtocol.Http,
             Id = ToGuid(MediaSourcePrefix, (int)type, id, 0).ToString(),
             IsInfiniteStream = isLive,
