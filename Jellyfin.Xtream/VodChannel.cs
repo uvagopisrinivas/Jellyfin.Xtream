@@ -37,7 +37,7 @@ namespace Jellyfin.Xtream;
 /// </summary>
 /// <param name="logger">Instance of the <see cref="ILogger"/> interface.</param>
 /// <param name="xtreamClient">Instance of the <see cref="IXtreamClient"/> interface.</param>
-public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) : IChannel
+public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) : IChannel, IDisableMediaSourceDisplay
 {
     /// <inheritdoc />
     public string? Name => "Xtream Video On-Demand";
