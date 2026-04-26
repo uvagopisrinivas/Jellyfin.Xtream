@@ -217,21 +217,26 @@ git push origin master --tags
 #### Step 3: Create GitHub Release
 
 ```bash
-gh release create v0.9.X Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll \
+# Package as zip (required for Jellyfin auto-update)
+zip -j /tmp/Jellyfin.Xtream-v0.9.X.zip Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll
+
+gh release create v0.9.X /tmp/Jellyfin.Xtream-v0.9.X.zip \
+  Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll \
   --title "v0.9.X" --notes "Description of changes" --latest
 ```
 
 > **Important:** Pushing a git tag alone does NOT create a GitHub Release.
 > You must run `gh release create` (or create it via the GitHub web UI) for
 > the release to appear on the Releases page and be marked as "Latest".
+> The zip file is required for Jellyfin's auto-update; the bare DLL is included for manual installs.
 
 #### Step 4: Update repository.json on gh-pages
 
 The plugin manifest at `https://uvagopisrinivas.github.io/Jellyfin.Xtream/repository.json` must be updated for Jellyfin's plugin catalog to see the new version. The `publish.yaml` workflow attempts this automatically, but often fails — always verify and update manually if needed.
 
 ```bash
-# Get the checksum of the built DLL
-shasum -a 256 Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll
+# Get the checksum of the zip (used by Jellyfin auto-update)
+shasum -a 256 /tmp/Jellyfin.Xtream-v0.9.X.zip
 
 # Stash any uncommitted work and switch to gh-pages
 git stash
@@ -245,8 +250,8 @@ Edit `repository.json` and add a new entry at the **top** of the `versions` arra
   "version": "0.9.X.0",
   "changelog": "Description of changes",
   "targetAbi": "10.11.0.0",
-  "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.X/Jellyfin.Xtream.dll",
-  "checksum": "<sha256 checksum from above>",
+  "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.X/Jellyfin.Xtream-v0.9.X.zip",
+  "checksum": "<sha256 checksum of zip from above>",
   "timestamp": "2026-XX-XXTXX:XX:XXZ"
 }
 ```
