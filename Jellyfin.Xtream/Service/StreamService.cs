@@ -596,6 +596,11 @@ public partial class StreamService(IXtreamClient xtreamClient)
             }
         }
 
+        // If we parsed languages and set a default audio track, disable probing
+        // so Jellyfin doesn't override our DefaultAudioStreamIndex.
+        // Otherwise keep probing enabled so Jellyfin discovers stream details.
+        bool hasLanguageTracks = defaultAudioStreamIndex.HasValue;
+
         return new MediaSourceInfo()
         {
             Container = extension,
@@ -613,7 +618,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
             RequiresOpening = restream,
             SupportsDirectPlay = true,
             SupportsDirectStream = true,
-            SupportsProbing = true,
+            SupportsProbing = !hasLanguageTracks,
         };
     }
 
