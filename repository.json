@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.10.0",
+        "changelog": "Defer per-item VOD info fetching to metadata refresh for faster category browsing",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.10/Jellyfin.Xtream.dll",
+        "checksum": "f393f9df7a786022ab0c8ab78a2660cc85546c0f4c013edb799e5c6adce0ec05",
+        "timestamp": "2026-04-26T18:36:00Z"
+      },
+      {
         "version": "0.9.9.0",
         "changelog": "Disable probing when language tracks are parsed to prevent Jellyfin from overriding DefaultAudioStreamIndex",
         "targetAbi": "10.11.0.0",
