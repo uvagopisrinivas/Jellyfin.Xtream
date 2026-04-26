@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.3"
+VERSION="0.9.4"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -193,46 +193,106 @@ Update version in three places before release:
 
 ### Creating a Release
 
-```bash
-# 1. Update version numbers (all three places)
-#    - Jellyfin.Xtream/Jellyfin.Xtream.csproj → <AssemblyVersion> and <FileVersion>
-#    - build.yaml → version
-#    - README.md → VERSION in deploy script, and add entry to Version History
+Every release requires updating code, creating a GitHub Release, updating the plugin repository manifest, and deploying to your server. Follow all steps below.
 
-# 2. Build release
+#### Step 1: Update Version Numbers
+
+Update version in three places:
+
+1. `Jellyfin.Xtream/Jellyfin.Xtream.csproj` - `<AssemblyVersion>` and `<FileVersion>`
+2. `build.yaml` - `version: "0.9.X.0"`
+3. `README.md` - `VERSION="0.9.X"` in deploy script, and add entry to Version History
+
+#### Step 2: Build, Commit, Tag, and Push
+
+```bash
 dotnet build -c Release Jellyfin.Xtream/Jellyfin.Xtream.csproj
 
-# 3. Commit, tag, and push
 git add -A
 git commit -m "v0.9.X - Description of changes"
 git tag v0.9.X
 git push origin master --tags
+```
 
-# 4. Create GitHub Release with DLL attached (this is what makes it show as "Latest")
+#### Step 3: Create GitHub Release
+
+```bash
 gh release create v0.9.X Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll \
   --title "v0.9.X" --notes "Description of changes" --latest
-
-# 5. The publish.yaml workflow will auto-update repository.json on gh-pages
-#    If it doesn't, manually update gh-pages:
-git checkout gh-pages
-# Edit repository.json to add new version entry
-git add repository.json
-git commit -m "Update repository.json for v0.9.X"
-git push origin gh-pages
-git checkout master
 ```
 
 > **Important:** Pushing a git tag alone does NOT create a GitHub Release.
 > You must run `gh release create` (or create it via the GitHub web UI) for
 > the release to appear on the Releases page and be marked as "Latest".
 
-### Plugin Repository (GitHub Pages)
+#### Step 4: Update repository.json on gh-pages
 
-The plugin manifest is hosted at:
-`https://uvagopisrinivas.github.io/Jellyfin.Xtream/repository.json`
+The plugin manifest at `https://uvagopisrinivas.github.io/Jellyfin.Xtream/repository.json` must be updated for Jellyfin's plugin catalog to see the new version. The `publish.yaml` workflow attempts this automatically, but often fails — always verify and update manually if needed.
 
-This is served from the `gh-pages` branch. The `publish.yaml` workflow attempts to auto-update it on release via `jellyfin/jellyfin-plugin-repository@master`. If that fails, update `repository.json` on `gh-pages` manually with the new version entry including:
-- `version`, `changelog`, `targetAbi`, `sourceUrl` (link to DLL on GitHub release), `checksum` (sha256 of DLL), `timestamp`
+```bash
+# Get the checksum of the built DLL
+shasum -a 256 Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll
+
+# Stash any uncommitted work and switch to gh-pages
+git stash
+git checkout gh-pages
+```
+
+Edit `repository.json` and add a new entry at the **top** of the `versions` array (newest first):
+
+```json
+{
+  "version": "0.9.X.0",
+  "changelog": "Description of changes",
+  "targetAbi": "10.11.0.0",
+  "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.X/Jellyfin.Xtream.dll",
+  "checksum": "<sha256 checksum from above>",
+  "timestamp": "2026-XX-XXTXX:XX:XXZ"
+}
+```
+
+Then push and return to master:
+
+```bash
+git add repository.json
+git commit -m "Update repository.json for v0.9.X"
+git push origin gh-pages
+git checkout master
+git stash pop
+```
+
+Verify the manifest is live: `curl https://uvagopisrinivas.github.io/Jellyfin.Xtream/repository.json`
+
+#### Step 5: Deploy to Docker Server
+
+```bash
+VERSION="0.9.X"
+PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
+
+# Copy DLL to server
+scp Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll yourserver:/tmp/
+
+# On the server:
+docker stop jellyfin
+rm -rf "$PLUGIN_DIR"
+mkdir -p "$PLUGIN_DIR"
+cp /tmp/Jellyfin.Xtream.dll "$PLUGIN_DIR/"
+cat > "$PLUGIN_DIR/meta.json" << EOF
+{"Name": "Jellyfin Xtream","Guid": "5d774c35-8567-46d3-a950-9bb8227a0c5d","Version": "${VERSION}.0","TargetAbi": "10.11.0.0","Framework": "net9.0","Overview": "Stream content from an Xtream-compatible server.","Description": "Stream Live IPTV, Video On-Demand, and Series from an Xtream-compatible server using this plugin.","Category": "LiveTV","Owner": "uvagopisrinivas"}
+EOF
+chown -R 1000:100 "$PLUGIN_DIR"
+docker start jellyfin
+
+# Verify
+sleep 20
+docker logs jellyfin --tail 50 | grep "Jellyfin Xtream"
+```
+
+#### Step 6: Verify
+
+1. Open Jellyfin Dashboard → Plugins → confirm correct version
+2. Check Jellyfin plugin catalog shows the new version (may take a few minutes for GitHub Pages cache)
+3. Check logs: `docker logs jellyfin --tail 200 | grep -i xtream`
 
 ## Known problems
 
@@ -310,6 +370,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.4** - Audio language track discovery: leave MediaStreams empty for VOD/Series so Jellyfin probes all audio tracks. Added diagnostic logging for Xtream API audio info.
 - **v0.9.3** - Add per-item error handling across all channels to prevent plugin crashes from malformed API data
 - **v0.9.2** - Add TMDB provider ID to VOD channel items for better subtitle provider support
 - **v0.9.1** - Fix null/empty string handling for images, subtitles, and metadata across all channels

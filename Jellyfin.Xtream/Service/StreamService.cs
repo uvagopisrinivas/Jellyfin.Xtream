@@ -416,43 +416,50 @@ public partial class StreamService(IXtreamClient xtreamClient)
 
         bool isLive = type == StreamType.Live;
 
+        // For non-live streams (VOD, Series), leave MediaStreams empty so
+        // Jellyfin's probe discovers all tracks (including multiple audio
+        // languages) and exposes them in the player UI.  For live streams
+        // the Xtream API metadata is the only source, so keep it.
         List<MediaBrowser.Model.Entities.MediaStream> mediaStreams = [];
-        if (videoInfo != null && !string.IsNullOrEmpty(videoInfo.CodecName))
+        if (isLive)
         {
-            mediaStreams.Add(new()
+            if (videoInfo != null && !string.IsNullOrEmpty(videoInfo.CodecName))
             {
-                AspectRatio = videoInfo.AspectRatio,
-                BitDepth = videoInfo.BitsPerRawSample,
-                Codec = videoInfo.CodecName,
-                ColorPrimaries = videoInfo.ColorPrimaries,
-                ColorRange = videoInfo.ColorRange,
-                ColorSpace = videoInfo.ColorSpace,
-                ColorTransfer = videoInfo.ColorTransfer,
-                Height = videoInfo.Height,
-                Index = videoInfo.Index,
-                IsAVC = videoInfo.IsAVC,
-                IsInterlaced = true,
-                Level = videoInfo.Level,
-                PixelFormat = videoInfo.PixelFormat,
-                Profile = videoInfo.Profile,
-                Type = MediaStreamType.Video,
-                Width = videoInfo.Width,
-            });
-        }
+                mediaStreams.Add(new()
+                {
+                    AspectRatio = videoInfo.AspectRatio,
+                    BitDepth = videoInfo.BitsPerRawSample,
+                    Codec = videoInfo.CodecName,
+                    ColorPrimaries = videoInfo.ColorPrimaries,
+                    ColorRange = videoInfo.ColorRange,
+                    ColorSpace = videoInfo.ColorSpace,
+                    ColorTransfer = videoInfo.ColorTransfer,
+                    Height = videoInfo.Height,
+                    Index = videoInfo.Index,
+                    IsAVC = videoInfo.IsAVC,
+                    IsInterlaced = true,
+                    Level = videoInfo.Level,
+                    PixelFormat = videoInfo.PixelFormat,
+                    Profile = videoInfo.Profile,
+                    Type = MediaStreamType.Video,
+                    Width = videoInfo.Width,
+                });
+            }
 
-        if (audioInfo != null && !string.IsNullOrEmpty(audioInfo.CodecName))
-        {
-            mediaStreams.Add(new()
+            if (audioInfo != null && !string.IsNullOrEmpty(audioInfo.CodecName))
             {
-                BitRate = audioInfo.Bitrate,
-                ChannelLayout = audioInfo.ChannelLayout,
-                Channels = audioInfo.Channels,
-                Codec = audioInfo.CodecName,
-                Index = audioInfo.Index,
-                Profile = audioInfo.Profile,
-                SampleRate = audioInfo.SampleRate,
-                Type = MediaStreamType.Audio,
-            });
+                mediaStreams.Add(new()
+                {
+                    BitRate = audioInfo.Bitrate,
+                    ChannelLayout = audioInfo.ChannelLayout,
+                    Channels = audioInfo.Channels,
+                    Codec = audioInfo.CodecName,
+                    Index = audioInfo.Index,
+                    Profile = audioInfo.Profile,
+                    SampleRate = audioInfo.SampleRate,
+                    Type = MediaStreamType.Audio,
+                });
+            }
         }
 
         return new MediaSourceInfo()

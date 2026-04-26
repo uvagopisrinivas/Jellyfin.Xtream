@@ -134,6 +134,26 @@ public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) 
         try
         {
             vodInfo = await xtreamClient.GetVodInfoAsync(Plugin.Instance.Creds, stream.StreamId, CancellationToken.None).ConfigureAwait(false);
+
+            // Log audio info from Xtream API to diagnose multi-language track availability
+            if (vodInfo?.Info?.Audio != null)
+            {
+                var audio = vodInfo.Info.Audio;
+                logger.LogInformation(
+                    "VOD {StreamId} ({Name}) - Xtream API audio info: Codec={Codec}, Channels={Channels}, Layout={Layout}, SampleRate={SampleRate}, Bitrate={Bitrate}, Index={Index}",
+                    stream.StreamId,
+                    stream.Name,
+                    audio.CodecName,
+                    audio.Channels,
+                    audio.ChannelLayout,
+                    audio.SampleRate,
+                    audio.Bitrate,
+                    audio.Index);
+            }
+            else
+            {
+                logger.LogInformation("VOD {StreamId} ({Name}) - Xtream API returned no audio info", stream.StreamId, stream.Name);
+            }
         }
         catch (Exception ex)
         {

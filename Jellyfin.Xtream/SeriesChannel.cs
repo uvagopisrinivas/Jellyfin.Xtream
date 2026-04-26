@@ -244,6 +244,27 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     {
         Client.Models.SeriesInfo serie = series.Info;
         ParsedName parsedName = StreamService.ParseName(episode.Title);
+
+        // Log audio info from Xtream API to diagnose multi-language track availability
+        if (episode.Info?.Audio != null)
+        {
+            var audio = episode.Info.Audio;
+            logger.LogInformation(
+                "Series Episode {EpisodeId} ({Title}) - Xtream API audio info: Codec={Codec}, Channels={Channels}, Layout={Layout}, SampleRate={SampleRate}, Bitrate={Bitrate}, Index={Index}",
+                episode.EpisodeId,
+                episode.Title,
+                audio.CodecName,
+                audio.Channels,
+                audio.ChannelLayout,
+                audio.SampleRate,
+                audio.Bitrate,
+                audio.Index);
+        }
+        else
+        {
+            logger.LogInformation("Series Episode {EpisodeId} ({Title}) - Xtream API returned no audio info", episode.EpisodeId, episode.Title);
+        }
+
         List<MediaSourceInfo> sources =
         [
             Plugin.Instance.StreamService.GetMediaSourceInfo(
