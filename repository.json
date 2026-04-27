@@ -8,38 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.17.0",
-        "changelog": "Default alternate image host to subshub.fun so image URL rewriting works out of the box.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.17/Jellyfin.Xtream-v0.9.17.zip",
-        "checksum": "123ad9e8c867a6e509e8ec25c00555a196119d22fe92d71754cd4a9ade5ff6a5",
-        "timestamp": "2026-04-27T21:26:00Z"
-      },
-      {
-        "version": "0.9.16.0",
-        "changelog": "Add alternate image host config: rewrite provider image URLs to a fallback host when the primary is unreachable.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.16/Jellyfin.Xtream-v0.9.16.zip",
-        "checksum": "07b9eef02d6770332dbb403830dbb9214acdb473dcc5a94f5f7c5b6e8c57e5e9",
-        "timestamp": "2026-04-27T21:05:00Z"
-      },
-      {
-        "version": "0.9.15.0",
-        "changelog": "Remove all image fallbacks for seasons and episodes. Only set ImageUrl when the item has its own unique image to prevent provider connection floods.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.15/Jellyfin.Xtream-v0.9.15.zip",
-        "checksum": "644795653bb930d970cf62149900ff748b8a535286d4401c67d3e531d3f0c951",
-        "timestamp": "2026-04-27T15:48:00Z"
-      },
-      {
-        "version": "0.9.14.0",
-        "changelog": "Fix image flood: only set episode ImageUrl when episode has its own image, stop falling back to series/season cover on every episode to prevent concurrent download storms",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.14/Jellyfin.Xtream-v0.9.14.zip",
-        "checksum": "b12bc0d78fd2976125247d0c81c942fd195fd2e40ae61074d8a3f9161bc1b88a",
-        "timestamp": "2026-04-27T15:17:00Z"
-      },
-      {
         "version": "0.9.13.0",
         "changelog": "Add VodMaxConcurrency config (default 75) with semaphore throttle on VOD metadata fetches",
         "targetAbi": "10.11.0.0",
