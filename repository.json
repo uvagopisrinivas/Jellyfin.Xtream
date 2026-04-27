@@ -8,30 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.15.0",
-        "changelog": "Increase VOD parallel fetching concurrency from 25 to 50 for faster large library browsing.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.15/Jellyfin.Xtream-v0.9.15.zip",
-        "checksum": "9b72b5e97b562c2260b45aa1268301993a2233ed405a4cc80c642bcf4b6560a7",
-        "timestamp": "2026-04-27T05:06:00Z"
-      },
-      {
-        "version": "0.9.14.0",
-        "changelog": "Increase VOD parallel fetching concurrency from 10 to 25 for faster browsing on large libraries.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.14/Jellyfin.Xtream-v0.9.14.zip",
-        "checksum": "fb9a6cb3c73cfe830974613bb9278a113bb81e44a69faab849e535c0817695eb",
-        "timestamp": "2026-04-27T04:00:00Z"
-      },
-      {
-        "version": "0.9.13.0",
-        "changelog": "Parallel VOD duration fetching (10 concurrent) for accurate remaining time without slow sequential browsing. Fix movies marked as played after a few seconds.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.13/Jellyfin.Xtream-v0.9.13.zip",
-        "checksum": "835c0be2329b3668d238fafeffe6fa685378f35ce8320e2e91ca5b27f9bea518",
-        "timestamp": "2026-04-27T03:11:00Z"
-      },
-      {
         "version": "0.9.12.0",
         "changelog": "Remove per-restart cache invalidation to fix slow series loading and SQLite constraint errors. Keep 12-hour time-based rotation.",
         "targetAbi": "10.11.0.0",
