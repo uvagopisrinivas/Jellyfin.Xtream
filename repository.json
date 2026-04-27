@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.17.0",
+        "changelog": "Default alternate image host to subshub.fun so image URL rewriting works out of the box.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.17/Jellyfin.Xtream-v0.9.17.zip",
+        "checksum": "123ad9e8c867a6e509e8ec25c00555a196119d22fe92d71754cd4a9ade5ff6a5",
+        "timestamp": "2026-04-27T21:26:00Z"
+      },
+      {
         "version": "0.9.16.0",
         "changelog": "Add alternate image host config: rewrite provider image URLs to a fallback host when the primary is unreachable.",
         "targetAbi": "10.11.0.0",
