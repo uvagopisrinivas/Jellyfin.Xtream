@@ -157,7 +157,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         {
             CommunityRating = (float)series.Rating5Based,
             DateModified = series.LastModified,
-            FolderType = ChannelFolderType.Series,
+            FolderType = ChannelFolderType.Container,
             Genres = GetGenres(series.Genre),
             Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
             ImageUrl = imageUrl,
@@ -200,7 +200,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             .ToList();
     }
 
-    private ChannelItemInfo CreateChannelItemInfo(int seriesId, SeriesStreamInfo series, int seasonId)
+    private ChannelItemInfo CreateChannelItemInfo(int seriesId, SeriesStreamInfo series, int seasonId, string? seriesFallbackImage)
     {
         Client.Models.SeriesInfo serie = series.Info;
         string name = $"Season {seasonId}";
@@ -220,13 +220,12 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             cover = GetNonEmptyOrNull(season.CoverBig) ?? GetNonEmptyOrNull(season.Cover);
         }
 
-        cover ??= GetNonEmptyOrNull(serie.Cover)
-            ?? serie.BackdropPaths?.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p));
+        cover ??= seriesFallbackImage;
 
         return new()
         {
             DateCreated = created,
-            FolderType = ChannelFolderType.Season,
+            FolderType = ChannelFolderType.Container,
             Genres = GetGenres(serie.Genre),
             Id = StreamService.ToGuid(StreamService.SeasonPrefix, serie.CategoryId, seriesId, seasonId).ToString(),
             ImageUrl = cover,
@@ -240,7 +239,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         };
     }
 
-    private ChannelItemInfo CreateChannelItemInfo(SeriesStreamInfo series, Season? season, Episode episode)
+    private ChannelItemInfo CreateChannelItemInfo(SeriesStreamInfo series, Season? season, Episode episode, string? seriesFallbackImage)
     {
         Client.Models.SeriesInfo serie = series.Info;
         ParsedName parsedName = StreamService.ParseName(episode.Title);
@@ -277,11 +276,19 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
                 name: !string.IsNullOrWhiteSpace(episode.Title) ? episode.Title : $"Episode {episode.EpisodeNum}")
         ];
 
-        string? cover = GetNonEmptyOrNull(episode.Info?.MovieImage)
-            ?? GetNonEmptyOrNull(season?.CoverBig)
-            ?? GetNonEmptyOrNull(season?.Cover)
-            ?? GetNonEmptyOrNull(serie.Cover)
-            ?? serie.BackdropPaths?.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p));
+        // If no season was resolved from the API's Seasons list, try matching by the episode's own season number
+        Season? resolvedSeason = season ?? series.Seasons?.FirstOrDefault(s => s.SeasonNumber == episode.Season);
+
+        string? cover = GetNonEmptyOrNull(episode.Info?.MovieImage);
+
+        // Fallback to season primary image when episode has no image
+        if (cover == null && resolvedSeason != null)
+        {
+            cover = GetNonEmptyOrNull(resolvedSeason.CoverBig) ?? GetNonEmptyOrNull(resolvedSeason.Cover);
+        }
+
+        // Fallback to series-level images
+        cover ??= seriesFallbackImage;
 
         return new()
         {
@@ -345,16 +352,29 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         };
     }
 
+    /// <summary>
+    /// Resolves the best available image for a series, computed once and reused
+    /// as a fallback for all seasons and episodes to avoid repeated lookups.
+    /// </summary>
+    private static string? ResolveSeriesFallbackImage(Client.Models.SeriesInfo serie)
+    {
+        return GetNonEmptyOrNull(serie.Cover)
+            ?? serie.BackdropPaths?.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p));
+    }
+
     private async Task<ChannelItemResult> GetSeasons(int seriesId, CancellationToken cancellationToken)
     {
         IEnumerable<Tuple<SeriesStreamInfo, int>> seasons = await Plugin.Instance.StreamService.GetSeasons(seriesId, cancellationToken).ConfigureAwait(false);
         List<ChannelItemInfo> items = [];
 
+        // Resolve the series image once and pass it to every season as a fallback
+        string? seriesFallbackImage = null;
         foreach (var tuple in seasons)
         {
+            seriesFallbackImage ??= ResolveSeriesFallbackImage(tuple.Item1.Info);
             try
             {
-                items.Add(CreateChannelItemInfo(seriesId, tuple.Item1, tuple.Item2));
+                items.Add(CreateChannelItemInfo(seriesId, tuple.Item1, tuple.Item2, seriesFallbackImage));
             }
             catch (Exception ex)
             {
@@ -376,11 +396,14 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         IEnumerable<Tuple<SeriesStreamInfo, Season?, Episode>> episodes = await Plugin.Instance.StreamService.GetEpisodes(seriesId, seasonId, cancellationToken).ConfigureAwait(false);
         List<ChannelItemInfo> items = [];
 
+        // Resolve the series image once and pass it to every episode as a fallback
+        string? seriesFallbackImage = null;
         foreach (var tuple in episodes)
         {
+            seriesFallbackImage ??= ResolveSeriesFallbackImage(tuple.Item1.Info);
             try
             {
-                items.Add(CreateChannelItemInfo(tuple.Item1, tuple.Item2, tuple.Item3));
+                items.Add(CreateChannelItemInfo(tuple.Item1, tuple.Item2, tuple.Item3, seriesFallbackImage));
             }
             catch (Exception ex)
             {

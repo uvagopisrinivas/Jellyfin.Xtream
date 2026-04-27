@@ -37,6 +37,12 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     private static Plugin? _instance;
 
     /// <summary>
+    /// A unique token generated each time the plugin is instantiated (i.e. on application restart),
+    /// included in <see cref="DataVersion"/> to force Jellyfin to invalidate its channel cache on restart.
+    /// </summary>
+    private readonly string _instanceId = Guid.NewGuid().ToString("N")[..8];
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Plugin"/> class.
     /// </summary>
     /// <param name="applicationPaths">Instance of the <see cref="IApplicationPaths"/> interface.</param>
@@ -70,8 +76,21 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 
     /// <summary>
     /// Gets the data version used to trigger a cache invalidation on plugin update or config change.
+    /// Includes a time-based component that rotates every 12 hours so that Jellyfin
+    /// periodically re-fetches channel items from the Xtream API, allowing new episodes
+    /// in ongoing seasons to appear without manual cache clearing.
     /// </summary>
-    public string DataVersion => Assembly.GetCallingAssembly().GetName().Version?.ToString() + Configuration.GetHashCode();
+    public string DataVersion
+    {
+        get
+        {
+            long timeBucket = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 43200; // 12-hour buckets
+            return Assembly.GetCallingAssembly().GetName().Version?.ToString()
+                + Configuration.GetHashCode()
+                + "_" + timeBucket
+                + "_" + _instanceId;
+        }
+    }
 
     /// <summary>
     /// Gets the current plugin instance.

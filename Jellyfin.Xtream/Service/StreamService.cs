@@ -14,6 +14,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -36,6 +37,14 @@ namespace Jellyfin.Xtream.Service;
 /// <param name="xtreamClient">Instance of the <see cref="IXtreamClient"/> interface.</param>
 public partial class StreamService(IXtreamClient xtreamClient)
 {
+    /// <summary>
+    /// Cache duration for series info responses to avoid redundant API calls
+    /// when navigating from seasons to episodes within the same series.
+    /// </summary>
+    private static readonly TimeSpan SeriesCacheDuration = TimeSpan.FromMinutes(5);
+
+    private readonly ConcurrentDictionary<int, (SeriesStreamInfo Data, DateTime FetchedAt)> _seriesCache = new();
+
     /// <summary>
     /// The id prefix for VOD category channel items.
     /// </summary>
@@ -330,6 +339,35 @@ public partial class StreamService(IXtreamClient xtreamClient)
     }
 
     /// <summary>
+    /// Gets the series stream info, using a short-lived cache to avoid redundant API calls
+    /// when the user navigates from seasons into episodes of the same series.
+    /// </summary>
+    /// <param name="seriesId">The Xtream id of the Series.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The <see cref="SeriesStreamInfo"/> for the series.</returns>
+    private async Task<SeriesStreamInfo> GetCachedSeriesInfoAsync(int seriesId, CancellationToken cancellationToken)
+    {
+        if (_seriesCache.TryGetValue(seriesId, out var cached) && DateTime.UtcNow - cached.FetchedAt < SeriesCacheDuration)
+        {
+            return cached.Data;
+        }
+
+        SeriesStreamInfo series = await xtreamClient.GetSeriesStreamsBySeriesAsync(Plugin.Instance.Creds, seriesId, cancellationToken).ConfigureAwait(false);
+        _seriesCache[seriesId] = (series, DateTime.UtcNow);
+
+        // Evict stale entries to prevent unbounded growth
+        foreach (var key in _seriesCache.Keys)
+        {
+            if (_seriesCache.TryGetValue(key, out var entry) && DateTime.UtcNow - entry.FetchedAt >= SeriesCacheDuration)
+            {
+                _seriesCache.TryRemove(key, out _);
+            }
+        }
+
+        return series;
+    }
+
+    /// <summary>
     /// Gets an iterator for the configured seasons in the Series.
     /// </summary>
     /// <param name="seriesId">The Xtream id of the Series.</param>
@@ -337,7 +375,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
     /// <returns>IAsyncEnumerable{StreamInfo}.</returns>
     public async Task<IEnumerable<Tuple<SeriesStreamInfo, int>>> GetSeasons(int seriesId, CancellationToken cancellationToken)
     {
-        SeriesStreamInfo series = await xtreamClient.GetSeriesStreamsBySeriesAsync(Plugin.Instance.Creds, seriesId, cancellationToken).ConfigureAwait(false);
+        SeriesStreamInfo series = await GetCachedSeriesInfoAsync(seriesId, cancellationToken).ConfigureAwait(false);
         int categoryId = series.Info.CategoryId;
         if (!IsConfigured(Plugin.Instance.Configuration.Series, categoryId, seriesId))
         {
@@ -365,7 +403,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
     /// <returns>IAsyncEnumerable{StreamInfo}.</returns>
     public async Task<IEnumerable<Tuple<SeriesStreamInfo, Season?, Episode>>> GetEpisodes(int seriesId, int seasonId, CancellationToken cancellationToken)
     {
-        SeriesStreamInfo series = await xtreamClient.GetSeriesStreamsBySeriesAsync(Plugin.Instance.Creds, seriesId, cancellationToken).ConfigureAwait(false);
+        SeriesStreamInfo series = await GetCachedSeriesInfoAsync(seriesId, cancellationToken).ConfigureAwait(false);
         Season? season = series.Seasons?.FirstOrDefault(s => s.SeasonNumber == seasonId);
 
         // Check if the season exists in the Episodes dictionary before accessing

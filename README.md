@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.10"
+VERSION="0.9.11"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -375,6 +375,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.11** - Optimize series image fallback: resolve series cover once and reuse for all seasons/episodes instead of per-item lookups.
 - **v0.9.10** - Performance: defer per-item VOD info fetching to metadata refresh, reducing folder load from ~90s to under 3s for large categories.
 - **v0.9.6** - Parse audio languages from stream titles to populate multi-track audio in player UI. Restored IDisableMediaSourceDisplay to prevent probe errors.
 - **v0.9.5** - Enable audio track discovery for VOD/Series: removed IDisableMediaSourceDisplay so Jellyfin probes remote streams and discovers all audio languages. Added diagnostic logging for Xtream API audio info.
@@ -443,6 +444,7 @@ docker start jellyfin
 **SeriesChannel.cs:**
 - Passes episode duration to GetMediaSourceInfo()
 - Updated Season lookup to use SeasonNumber
+- Optimized image fallback: series cover resolved once via ResolveSeriesFallbackImage() and passed to all seasons/episodes
 
 **Season.cs:**
 - Fixed JSON property mappings (id → Id, season_number → SeasonNumber)
