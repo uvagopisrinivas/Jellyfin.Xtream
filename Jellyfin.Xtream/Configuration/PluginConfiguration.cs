@@ -85,6 +85,11 @@ public class PluginConfiguration : BasePluginConfiguration
     public SerializableDictionary<int, ChannelOverrides> LiveTvOverrides { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets the maximum number of concurrent VOD metadata fetches.
+    /// </summary>
+    public int VodMaxConcurrency { get; set; } = 75;
+
+    /// <summary>
     /// Gets or sets the preferred audio language ISO 639-2 code (e.g. "tel" for Telugu).
     /// When multiple audio tracks are detected from the stream title, the track matching
     /// this language will be set as the default.

@@ -44,11 +44,46 @@ public class XtreamVodProvider(ILogger<VodChannel> logger, IProviderManager prov
     /// </summary>
     public const string ProviderName = "XtreamVodProvider";
 
+    private static SemaphoreSlim? _semaphore;
+
+    private static SemaphoreSlim Semaphore
+    {
+        get
+        {
+            int max = Plugin.Instance.Configuration.VodMaxConcurrency;
+            if (max < 1)
+            {
+                max = 75;
+            }
+
+            if (_semaphore is null || _semaphore.CurrentCount != max)
+            {
+                _semaphore?.Dispose();
+                _semaphore = new SemaphoreSlim(max, max);
+            }
+
+            return _semaphore;
+        }
+    }
+
     /// <inheritdoc/>
     public string Name => ProviderName;
 
     /// <inheritdoc/>
     public async Task<ItemUpdateType> FetchAsync(Movie item, MetadataRefreshOptions options, CancellationToken cancellationToken)
+    {
+        await Semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await FetchCoreAsync(item, options, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            Semaphore.Release();
+        }
+    }
+
+    private async Task<ItemUpdateType> FetchCoreAsync(Movie item, MetadataRefreshOptions options, CancellationToken cancellationToken)
     {
         string? idStr = item.GetProviderId(ProviderName);
         if (idStr is not null)
