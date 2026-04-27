@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.11.0",
+        "changelog": "Optimize series image fallback: resolve series cover once and reuse for all seasons/episodes. Add series info cache and time-based cache invalidation.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.11/Jellyfin.Xtream-v0.9.11.zip",
+        "checksum": "fcf840a6784ecd670d2a215faf68032985570dd635a0b4c3c849c2535cc3ac4e",
+        "timestamp": "2026-04-26T22:16:00Z"
+      },
+      {
         "version": "0.9.10.0",
         "changelog": "Defer per-item VOD info fetching to metadata refresh for faster category browsing",
         "targetAbi": "10.11.0.0",
