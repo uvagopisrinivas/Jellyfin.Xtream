@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.15.0",
+        "changelog": "Increase VOD parallel fetching concurrency from 25 to 50 for faster large library browsing.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.15/Jellyfin.Xtream-v0.9.15.zip",
+        "checksum": "9b72b5e97b562c2260b45aa1268301993a2233ed405a4cc80c642bcf4b6560a7",
+        "timestamp": "2026-04-27T05:06:00Z"
+      },
+      {
         "version": "0.9.14.0",
         "changelog": "Increase VOD parallel fetching concurrency from 10 to 25 for faster browsing on large libraries.",
         "targetAbi": "10.11.0.0",
