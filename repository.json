@@ -8,14 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.16.0",
-        "changelog": "Parallelize series episode, season, and series list processing using Parallel.For for faster browsing on large libraries. Downgrade per-episode audio logging to Debug level.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.16/Jellyfin.Xtream-v0.9.16.zip",
-        "checksum": "ea9c24f45eebfdca214b0a0ee8156344d8b791a69eca161f80fd75f4082a5652",
-        "timestamp": "2026-04-27T06:42:00Z"
-      },
-      {
         "version": "0.9.15.0",
         "changelog": "Increase VOD parallel fetching concurrency from 25 to 50 for faster large library browsing.",
         "targetAbi": "10.11.0.0",
