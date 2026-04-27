@@ -19,6 +19,7 @@ export default function (view) {
       () => getConfig.then((config) => config.Vod),
       () => Xtream.fetchJson('Xtream/VodCategories'),
       (categoryId) => Xtream.fetchJson(`Xtream/VodCategories/${categoryId}`),
+      { showLanguageFilter: true },
     ).then((data) => {
       view.querySelector('#XtreamVodForm').addEventListener('submit', (e) => {
         Dashboard.showLoadingMsg();

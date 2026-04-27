@@ -51,19 +51,45 @@ const createItemRow = (item, state, update) => {
   return tr;
 }
 
+const languagePatterns = {
+  'Telugu': /[\(\[, ]tel(?:ugu)?[\)\], .\]]/i,
+  'Hindi': /[\(\[, ]hin(?:di)?[\)\], .\]]/i,
+  'Tamil': /[\(\[, ]tam(?:il)?[\)\], .\]]/i,
+  'English': /[\(\[, ]eng(?:lish)?[\)\], .\]]/i,
+  'Kannada': /[\(\[, ]kan(?:nada)?[\)\], .\]]/i,
+  'Malayalam': /[\(\[, ]mal(?:ayalam)?[\)\], .\]]/i,
+};
+
+const itemMatchesLanguage = (name, lang) => {
+  if (lang === 'All') return true;
+  const pattern = languagePatterns[lang];
+  // Pad the name so boundary patterns match at start/end too
+  return pattern && pattern.test(' ' + name + ' ');
+};
+
 const populateItemsTable = (wrapper, table, items) => {
   for (let i = 0; i < items.length; ++i) {
     const item = items[i];
-    const state = wrapper.live !== undefined && (wrapper.live.length === 0 || wrapper.live.includes(item.Id));
+    const live = wrapper.live;
+    const state = Array.isArray(live) && (live.length === 0 || live.includes(item.Id));
     const row = createItemRow(item, state, (e) => {
       let live = wrapper.live;
       if (e.target.checked) {
-        live ??= [];
-        live.push(item.Id);
+        if (!Array.isArray(live)) {
+          live = [item.Id];
+        } else if (live.length === 0) {
+          // Already all selected, nothing to do
+          return;
+        } else {
+          live = [...live, item.Id];
+        }
         if (items.every(s => live.includes(s.Id))) {
           live = [];
         }
       } else {
+        if (!Array.isArray(live)) {
+          return;
+        }
         if (live.length === 0) {
           live = items.map(s => s.Id);
         }
@@ -78,12 +104,58 @@ const populateItemsTable = (wrapper, table, items) => {
   }
 }
 
+const createLanguageFilter = (wrapper, table, items, categoryCheckbox) => {
+  const container = document.createElement('span');
+  container.classList.add('language-filter');
+
+  const select = document.createElement('select');
+  select.style.cssText = 'margin-left:8px;padding:2px 4px;font-size:0.85em;background:#1c1c1e;color:#ccc;border:1px solid #444;border-radius:4px;';
+  const langs = ['Filter by language...', 'All', ...Object.keys(languagePatterns)];
+  langs.forEach((lang, i) => {
+    const opt = document.createElement('option');
+    opt.value = i === 0 ? '' : lang;
+    opt.textContent = lang;
+    if (i === 0) opt.disabled = true;
+    select.appendChild(opt);
+  });
+  select.selectedIndex = 0;
+
+  select.onchange = () => {
+    const lang = select.value;
+    if (!lang) return;
+
+    const matchingIds = items.filter(item => itemMatchesLanguage(item.Name, lang)).map(item => item.Id);
+
+    // Update checkboxes in the table
+    table.querySelectorAll('tr[data-item-id]').forEach((row) => {
+      const id = parseInt(row.dataset.itemId, 10);
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = matchingIds.includes(id);
+    });
+
+    // Update the data model
+    if (lang === 'All' || matchingIds.length === items.length) {
+      wrapper.live = [];
+    } else if (matchingIds.length === 0) {
+      wrapper.live = undefined;
+    } else {
+      wrapper.live = matchingIds;
+    }
+
+    setCheckboxState(categoryCheckbox, wrapper.live);
+    select.selectedIndex = 0;
+  };
+
+  container.appendChild(select);
+  return container;
+};
+
 const setCheckboxState = (checkbox, live) => {
-  checkbox.indeterminate = live !== undefined && live.length > 0;
-  checkbox.checked = live !== undefined && live.length === 0;
+  checkbox.indeterminate = Array.isArray(live) && live.length > 0;
+  checkbox.checked = Array.isArray(live) && live.length === 0;
 }
 
-const createCategoryRow = (wrapper, category, loadItems) => {
+const createCategoryRow = (wrapper, category, loadItems, showLanguageFilter) => {
   const tr = document.createElement('tr');
   tr.dataset['categoryId'] = category.Id;
 
@@ -91,12 +163,17 @@ const createCategoryRow = (wrapper, category, loadItems) => {
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   setCheckboxState(checkbox, wrapper.live);
+
+  // Track previous state so we can cycle: none → full → none,
+  // and partial → full → none → full (indeterminate always goes to full first).
   const onchange = () => {
-    if (checkbox.checked) {
+    const wasIndeterminate = Array.isArray(wrapper.live) && wrapper.live.length > 0;
+    if (wasIndeterminate || checkbox.checked) {
       wrapper.live = [];
     } else {
       wrapper.live = undefined;
     }
+    setCheckboxState(checkbox, wrapper.live);
   };
   checkbox.onchange = onchange;
   td.appendChild(checkbox);
@@ -126,13 +203,19 @@ const createCategoryRow = (wrapper, category, loadItems) => {
     Dashboard.showLoadingMsg();
     expand.firstElementChild.classList.replace('expand_more', 'expand_less');
     const table = document.createElement('table');
+    let langFilter = null;
     loadItems(category.Id).then((items) => {
       populateItemsTable(_wrapper, table, items);
+      if (showLanguageFilter) {
+        langFilter = createLanguageFilter(_wrapper, table, items, checkbox);
+        td.insertBefore(langFilter, table);
+      }
       Dashboard.hideLoadingMsg();
     });
     checkbox.onchange = () => {
       onchange();
-      table.querySelectorAll('input[type="checkbox"]').forEach((c) => c.checked = checkbox.checked);
+      const allChecked = Array.isArray(wrapper.live) && wrapper.live.length === 0;
+      table.querySelectorAll('input[type="checkbox"]').forEach((c) => c.checked = allChecked);
     };
     td.appendChild(table);
 
@@ -141,6 +224,7 @@ const createCategoryRow = (wrapper, category, loadItems) => {
 
       Dashboard.showLoadingMsg();
       expand.firstElementChild.classList.replace('expand_less', 'expand_more');
+      if (langFilter) td.removeChild(langFilter);
       td.removeChild(table);
       Dashboard.hideLoadingMsg();
     };
@@ -151,7 +235,8 @@ const createCategoryRow = (wrapper, category, loadItems) => {
   return tr;
 };
 
-const populateCategoriesTable = (table, loadConfig, loadCategories, loadItems) => {
+const populateCategoriesTable = (table, loadConfig, loadCategories, loadItems, options) => {
+  const showLanguageFilter = options && options.showLanguageFilter;
   Dashboard.showLoadingMsg();
   const fetchConfig = loadConfig();
   const fetchCategories = loadCategories();
@@ -167,7 +252,7 @@ const populateCategoriesTable = (table, loadConfig, loadCategories, loadItems) =
             data[category.Id] = value;
           },
         }
-        const elem = createCategoryRow(wrapper, category, loadItems);
+        const elem = createCategoryRow(wrapper, category, loadItems, showLanguageFilter);
         table.appendChild(elem);
       }
       Dashboard.hideLoadingMsg();

@@ -17,6 +17,7 @@ export default function (view) {
       () => getConfig.then((config) => config.Series),
       () => Xtream.fetchJson('Xtream/SeriesCategories'),
       (categoryId) => Xtream.fetchJson(`Xtream/SeriesCategories/${categoryId}`),
+      { showLanguageFilter: true },
     ).then((data) => {
       view.querySelector('#XtreamSeriesForm').addEventListener('submit', (e) => {
         Dashboard.showLoadingMsg();
