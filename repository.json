@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.16.0",
+        "changelog": "Add alternate image host config: rewrite provider image URLs to a fallback host when the primary is unreachable.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.16/Jellyfin.Xtream-v0.9.16.zip",
+        "checksum": "07b9eef02d6770332dbb403830dbb9214acdb473dcc5a94f5f7c5b6e8c57e5e9",
+        "timestamp": "2026-04-27T21:05:00Z"
+      },
+      {
         "version": "0.9.15.0",
         "changelog": "Remove all image fallbacks for seasons and episodes. Only set ImageUrl when the item has its own unique image to prevent provider connection floods.",
         "targetAbi": "10.11.0.0",
