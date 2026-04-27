@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.13.0",
+        "changelog": "Restore VOD duration fetching to fix movies marked as played after a few seconds. Restore FolderType.Series/Season to fix empty seasons/episodes after metadata refresh.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.13/Jellyfin.Xtream-v0.9.13.zip",
+        "checksum": "031bcecbb9d5fb82d21ad7f2dae4ccc5033c66b292c496c6cc6f6c53e0134b6c",
+        "timestamp": "2026-04-27T03:11:00Z"
+      },
+      {
         "version": "0.9.12.0",
         "changelog": "Remove per-restart cache invalidation to fix slow series loading and SQLite constraint errors. Keep 12-hour time-based rotation.",
         "targetAbi": "10.11.0.0",
