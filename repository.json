@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.14.0",
+        "changelog": "Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.14/Jellyfin.Xtream-v0.9.14.zip",
+        "checksum": "5260a952cf4f3dc52610952381a7978a11757f941d478b459cc23d5b335283a3",
+        "timestamp": "2026-04-27T19:15:00Z"
+      },
+      {
         "version": "0.9.13.0",
         "changelog": "Add VodMaxConcurrency config (default 75) with semaphore throttle on VOD metadata fetches",
         "targetAbi": "10.11.0.0",
