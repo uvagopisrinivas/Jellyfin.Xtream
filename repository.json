@@ -9,10 +9,10 @@
     "versions": [
       {
         "version": "0.9.13.0",
-        "changelog": "Restore VOD duration fetching to fix movies marked as played after a few seconds. Restore FolderType.Series/Season to fix empty seasons/episodes after metadata refresh.",
+        "changelog": "Parallel VOD duration fetching (10 concurrent) for accurate remaining time without slow sequential browsing. Fix movies marked as played after a few seconds.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.13/Jellyfin.Xtream-v0.9.13.zip",
-        "checksum": "031bcecbb9d5fb82d21ad7f2dae4ccc5033c66b292c496c6cc6f6c53e0134b6c",
+        "checksum": "835c0be2329b3668d238fafeffe6fa685378f35ce8320e2e91ca5b27f9bea518",
         "timestamp": "2026-04-27T03:11:00Z"
       },
       {
