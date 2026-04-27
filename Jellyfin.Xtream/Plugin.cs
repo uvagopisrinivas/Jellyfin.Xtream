@@ -37,12 +37,6 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     private static Plugin? _instance;
 
     /// <summary>
-    /// A unique token generated each time the plugin is instantiated (i.e. on application restart),
-    /// included in <see cref="DataVersion"/> to force Jellyfin to invalidate its channel cache on restart.
-    /// </summary>
-    private readonly string _instanceId = Guid.NewGuid().ToString("N")[..8];
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="Plugin"/> class.
     /// </summary>
     /// <param name="applicationPaths">Instance of the <see cref="IApplicationPaths"/> interface.</param>
@@ -87,8 +81,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             long timeBucket = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 43200; // 12-hour buckets
             return Assembly.GetCallingAssembly().GetName().Version?.ToString()
                 + Configuration.GetHashCode()
-                + "_" + timeBucket
-                + "_" + _instanceId;
+                + "_" + timeBucket;
         }
     }
 
