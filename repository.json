@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.13.0",
+        "changelog": "Add VodMaxConcurrency config (default 75) with semaphore throttle on VOD metadata fetches",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.13/Jellyfin.Xtream-v0.9.13.zip",
+        "checksum": "220c906bc8b3cf36f61cac1047d42fde4fbd418da6fa231b7c0639c7d8010dab",
+        "timestamp": "2026-04-27T07:39:00Z"
+      },
+      {
         "version": "0.9.12.0",
         "changelog": "Remove per-restart cache invalidation to fix slow series loading and SQLite constraint errors. Keep 12-hour time-based rotation.",
         "targetAbi": "10.11.0.0",
