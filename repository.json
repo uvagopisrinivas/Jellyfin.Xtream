@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.15.0",
+        "changelog": "Remove all image fallbacks for seasons and episodes. Only set ImageUrl when the item has its own unique image to prevent provider connection floods.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.15/Jellyfin.Xtream-v0.9.15.zip",
+        "checksum": "644795653bb930d970cf62149900ff748b8a535286d4401c67d3e531d3f0c951",
+        "timestamp": "2026-04-27T15:48:00Z"
+      },
+      {
         "version": "0.9.14.0",
         "changelog": "Fix image flood: only set episode ImageUrl when episode has its own image, stop falling back to series/season cover on every episode to prevent concurrent download storms",
         "targetAbi": "10.11.0.0",
