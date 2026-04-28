@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.14"
+VERSION="0.9.15"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -356,7 +356,7 @@ If VOD movies are marked as complete after a few seconds:
 ### Rollback to Previous Version
 
 ```bash
-VERSION="0.9.0"
+VERSION="0.9.14"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -375,6 +375,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.15** - Fix SemaphoreFullException in XtreamVodProvider: semaphore was being recreated mid-use due to CurrentCount check; now tracks configured max separately and captures semaphore reference locally.
 - **v0.9.14** - Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only.
 - **v0.9.13** - Remove per-restart cache invalidation (_instanceId) to prevent slow series loading and SQLite constraint errors on restart. Keep 12-hour time-based rotation only.
 - **v0.9.11** - Optimize series image fallback: resolve series cover once and reuse for all seasons/episodes instead of per-item lookups.
