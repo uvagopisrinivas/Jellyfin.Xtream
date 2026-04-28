@@ -8,22 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.16.0",
-        "changelog": "Restore v0.9.10 VOD logic with language parsing and preferred audio language. Fix SemaphoreFullException in VOD metadata provider. Add series info cache.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.16/Jellyfin.Xtream-v0.9.16.zip",
-        "checksum": "a6f6bdfc2d8262c4a13c7762abde3c03516024b887fe24b02f87cdc7f9d06e0e",
-        "timestamp": "2026-04-28T02:10:00Z"
-      },
-      {
-        "version": "0.9.15.0",
-        "changelog": "Fix video freeze and audio track mismatch for multi-language VOD/Series. Fix SemaphoreFullException in VOD metadata provider (thread-safe semaphore).",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.15/Jellyfin.Xtream-v0.9.15.zip",
-        "checksum": "f7489661f0d90fcb90f808db272b035cf6d74e1c87a0267e10898877179c1670",
-        "timestamp": "2026-04-28T01:25:00Z"
-      },
-      {
         "version": "0.9.14.0",
         "changelog": "Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only",
         "targetAbi": "10.11.0.0",
