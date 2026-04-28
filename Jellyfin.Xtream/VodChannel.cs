@@ -34,7 +34,7 @@ namespace Jellyfin.Xtream;
 /// The Xtream Codes API channel.
 /// </summary>
 /// <param name="logger">Instance of the <see cref="ILogger"/> interface.</param>
-public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSourceDisplay
+public class VodChannel(ILogger<VodChannel> logger) : IChannel
 {
     /// <inheritdoc />
     public string? Name => "Xtream Video On-Demand";
