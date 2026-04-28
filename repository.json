@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.15.0",
+        "changelog": "Fix SemaphoreFullException in XtreamVodProvider: semaphore was being recreated mid-use due to CurrentCount check; now tracks configured max separately and captures semaphore reference locally.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.15/Jellyfin.Xtream-v0.9.15.zip",
+        "checksum": "ea2cb383c4b74698242fb79c5fe19f3a9cd73a06ab6e7fc5adcc8d6c794003dd",
+        "timestamp": "2026-04-28T00:38:00Z"
+      },
+      {
         "version": "0.9.14.0",
         "changelog": "Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only",
         "targetAbi": "10.11.0.0",
