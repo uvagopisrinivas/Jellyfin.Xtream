@@ -44,7 +44,9 @@ public class XtreamVodProvider(ILogger<VodChannel> logger, IProviderManager prov
     /// </summary>
     public const string ProviderName = "XtreamVodProvider";
 
+    private static readonly object _semaphoreLock = new();
     private static SemaphoreSlim? _semaphore;
+    private static int _semaphoreMax;
 
     private static SemaphoreSlim Semaphore
     {
@@ -56,13 +58,17 @@ public class XtreamVodProvider(ILogger<VodChannel> logger, IProviderManager prov
                 max = 75;
             }
 
-            if (_semaphore is null || _semaphore.CurrentCount != max)
+            lock (_semaphoreLock)
             {
-                _semaphore?.Dispose();
-                _semaphore = new SemaphoreSlim(max, max);
-            }
+                if (_semaphore is null || _semaphoreMax != max)
+                {
+                    _semaphore?.Dispose();
+                    _semaphore = new SemaphoreSlim(max, max);
+                    _semaphoreMax = max;
+                }
 
-            return _semaphore;
+                return _semaphore;
+            }
         }
     }
 
@@ -72,14 +78,15 @@ public class XtreamVodProvider(ILogger<VodChannel> logger, IProviderManager prov
     /// <inheritdoc/>
     public async Task<ItemUpdateType> FetchAsync(Movie item, MetadataRefreshOptions options, CancellationToken cancellationToken)
     {
-        await Semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+        SemaphoreSlim semaphore = Semaphore;
+        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             return await FetchCoreAsync(item, options, cancellationToken).ConfigureAwait(false);
         }
         finally
         {
-            Semaphore.Release();
+            semaphore.Release();
         }
     }
 

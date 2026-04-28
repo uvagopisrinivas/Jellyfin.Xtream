@@ -526,90 +526,14 @@ public partial class StreamService(IXtreamClient xtreamClient)
 
         bool isLive = type == StreamType.Live;
 
+        // For VOD and Series, provide an empty MediaStreams list and let Jellyfin
+        // probe the actual file. This ensures correct stream indexes, proper video
+        // playback, and accurate audio track labels/selection. Synthetic streams
+        // with guessed indexes cause video to break and audio tracks to mismatch.
         List<MediaBrowser.Model.Entities.MediaStream> mediaStreams = [];
-        if (videoInfo != null && !string.IsNullOrEmpty(videoInfo.CodecName))
+        if (isLive && audioInfo != null && !string.IsNullOrEmpty(audioInfo.CodecName))
         {
-            mediaStreams.Add(new()
-            {
-                AspectRatio = videoInfo.AspectRatio,
-                BitDepth = videoInfo.BitsPerRawSample,
-                Codec = videoInfo.CodecName,
-                ColorPrimaries = videoInfo.ColorPrimaries,
-                ColorRange = videoInfo.ColorRange,
-                ColorSpace = videoInfo.ColorSpace,
-                ColorTransfer = videoInfo.ColorTransfer,
-                Height = videoInfo.Height,
-                Index = videoInfo.Index,
-                IsAVC = videoInfo.IsAVC,
-                IsInterlaced = true,
-                Level = videoInfo.Level,
-                PixelFormat = videoInfo.PixelFormat,
-                Profile = videoInfo.Profile,
-                Type = MediaStreamType.Video,
-                Width = videoInfo.Width,
-            });
-        }
-
-        if (!isLive && !string.IsNullOrWhiteSpace(name))
-        {
-            // Parse language names from the stream title (e.g. "Movie Telugu + Tamil + Hindi + Eng")
-            // and create an audio MediaStream per language so the player shows track selection.
-            var languages = ParseLanguagesFromName(name);
-            if (languages.Count > 0)
-            {
-                string preferredLang = Plugin.Instance.Configuration.PreferredAudioLanguage;
-                int audioIndex = videoInfo != null ? 1 : 0;
-
-                // If preferred language is found, use its position; otherwise default to first track
-                bool preferredFound = languages.Any(l => string.Equals(l.Code, preferredLang, StringComparison.OrdinalIgnoreCase));
-
-                foreach (var (langName, isoCode) in languages)
-                {
-                    bool isDefault = preferredFound
-                        ? string.Equals(isoCode, preferredLang, StringComparison.OrdinalIgnoreCase)
-                        : audioIndex == (videoInfo != null ? 1 : 0);
-
-                    var stream = new MediaBrowser.Model.Entities.MediaStream()
-                    {
-                        Codec = audioInfo?.CodecName ?? "aac",
-                        Channels = audioInfo?.Channels ?? 2,
-                        SampleRate = audioInfo?.SampleRate ?? 48000,
-                        Index = audioIndex++,
-                        Language = isoCode,
-                        Title = langName,
-                        Type = MediaStreamType.Audio,
-                        IsDefault = isDefault,
-                    };
-
-                    if (audioInfo != null)
-                    {
-                        stream.BitRate = audioInfo.Bitrate;
-                        stream.ChannelLayout = audioInfo.ChannelLayout;
-                        stream.Profile = audioInfo.Profile;
-                    }
-
-                    mediaStreams.Add(stream);
-                }
-            }
-            else if (audioInfo != null && !string.IsNullOrEmpty(audioInfo.CodecName))
-            {
-                // No languages parsed from name, fall back to single audio track from API
-                mediaStreams.Add(new()
-                {
-                    BitRate = audioInfo.Bitrate,
-                    ChannelLayout = audioInfo.ChannelLayout,
-                    Channels = audioInfo.Channels,
-                    Codec = audioInfo.CodecName,
-                    Index = audioInfo.Index,
-                    Profile = audioInfo.Profile,
-                    SampleRate = audioInfo.SampleRate,
-                    Type = MediaStreamType.Audio,
-                });
-            }
-        }
-        else if (audioInfo != null && !string.IsNullOrEmpty(audioInfo.CodecName))
-        {
-            // Live streams: use single audio track from Xtream API
+            // Live streams can't be probed reliably, so use Xtream API info.
             mediaStreams.Add(new()
             {
                 BitRate = audioInfo.Bitrate,
@@ -623,26 +547,9 @@ public partial class StreamService(IXtreamClient xtreamClient)
             });
         }
 
-        // Determine the default audio stream index based on preferred language
-        int? defaultAudioStreamIndex = null;
-        foreach (var ms in mediaStreams)
-        {
-            if (ms.Type == MediaStreamType.Audio && ms.IsDefault)
-            {
-                defaultAudioStreamIndex = ms.Index;
-                break;
-            }
-        }
-
-        // If we parsed languages and set a default audio track, disable probing
-        // so Jellyfin doesn't override our DefaultAudioStreamIndex.
-        // Otherwise keep probing enabled so Jellyfin discovers stream details.
-        bool hasLanguageTracks = defaultAudioStreamIndex.HasValue;
-
         return new MediaSourceInfo()
         {
             Container = extension,
-            DefaultAudioStreamIndex = defaultAudioStreamIndex,
             EncoderProtocol = MediaProtocol.Http,
             Id = ToGuid(MediaSourcePrefix, (int)type, id, 0).ToString(),
             IsInfiniteStream = isLive,
@@ -656,7 +563,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
             RequiresOpening = restream,
             SupportsDirectPlay = true,
             SupportsDirectStream = true,
-            SupportsProbing = !hasLanguageTracks,
+            SupportsProbing = true,
         };
     }
 
