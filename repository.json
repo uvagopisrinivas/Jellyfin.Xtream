@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.16.0",
+        "changelog": "Remove IDisableMediaSourceDisplay from VOD channel so Jellyfin probes remote streams for correct video/audio track discovery. Remove dead language parsing code.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.16/Jellyfin.Xtream-v0.9.16.zip",
+        "checksum": "87607422089d9964a34c2b432708bf1788f9d2cd8c82a3762eca5586a89bb699",
+        "timestamp": "2026-04-28T01:47:00Z"
+      },
+      {
         "version": "0.9.15.0",
         "changelog": "Fix video freeze and audio track mismatch for multi-language VOD/Series. Fix SemaphoreFullException in VOD metadata provider (thread-safe semaphore).",
         "targetAbi": "10.11.0.0",
