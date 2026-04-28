@@ -14,6 +14,7 @@ export default function (view) {
       view.querySelector('#Username').value = config.Username;
       view.querySelector('#Password').value = config.Password;
       view.querySelector('#UserAgent').value = config.UserAgent;
+      view.querySelector('#PreferredAudioLanguage').value = config.PreferredAudioLanguage || 'tel';
       Dashboard.hideLoadingMsg();
     });
 
@@ -59,6 +60,7 @@ export default function (view) {
         config.Username = view.querySelector('#Username').value;
         config.Password = view.querySelector('#Password').value;
         config.UserAgent = view.querySelector('#UserAgent').value;
+        config.PreferredAudioLanguage = view.querySelector('#PreferredAudioLanguage').value;
         ApiClient.updatePluginConfiguration(pluginId, config).then((result) => {
           reloadStatus();
           Dashboard.processPluginConfigurationUpdateResult(result);
