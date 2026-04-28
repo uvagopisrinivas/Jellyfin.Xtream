@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.16"
+VERSION="0.9.14"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -375,8 +375,6 @@ docker start jellyfin
 
 ## Version History
 
-- **v0.9.16** - Remove IDisableMediaSourceDisplay from VOD channel so Jellyfin probes remote streams for correct video/audio track discovery.
-- **v0.9.15** - Fix video freeze and audio track mismatch: removed synthetic audio/video streams for VOD/Series so Jellyfin probes the actual container for correct stream indexes. Fixed SemaphoreFullException in VOD metadata provider (thread-safe semaphore with proper lifecycle).
 - **v0.9.14** - Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only.
 - **v0.9.13** - Remove per-restart cache invalidation (_instanceId) to prevent slow series loading and SQLite constraint errors on restart. Keep 12-hour time-based rotation only.
 - **v0.9.11** - Optimize series image fallback: resolve series cover once and reuse for all seasons/episodes instead of per-item lookups.

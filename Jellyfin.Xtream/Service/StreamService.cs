@@ -660,9 +660,6 @@ public partial class StreamService(IXtreamClient xtreamClient)
         };
     }
 
-    [GeneratedRegex(@"\[([^\]]+)\]|\|([^\|]+)\|")]
-    private static partial Regex TagRegex();
-
     /// <summary>
     /// Parses language names from a stream title.
     /// Handles all common Xtream provider patterns:
@@ -784,4 +781,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
     /// <summary>Matches trailing language list after closing paren, e.g. ") Telugu + Tamil + Hindi".</summary>
     [GeneratedRegex(@"\)\s+([\w\s\+&,]+)$")]
     private static partial Regex TrailingLanguageRegex();
+
+    [GeneratedRegex(@"\[([^\]]+)\]|\|([^\|]+)\|")]
+    private static partial Regex TagRegex();
 }
