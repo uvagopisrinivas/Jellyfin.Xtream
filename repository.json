@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.16.0",
+        "changelog": "Fix VOD duration not showing and premature watched status for movies with language tags in title. Keep probing enabled when duration is unknown.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.16/Jellyfin.Xtream-v0.9.16.zip",
+        "checksum": "1ac7bc0ad51b5e957c88aaea9fbd701f3c66a68793c6074012f2eac72af41e5f",
+        "timestamp": "2026-05-01T12:56:00Z"
+      },
+      {
         "version": "0.9.15.0",
         "changelog": "Fix SemaphoreFullException in XtreamVodProvider: semaphore was being recreated mid-use due to CurrentCount check; now tracks configured max separately and captures semaphore reference locally.",
         "targetAbi": "10.11.0.0",
