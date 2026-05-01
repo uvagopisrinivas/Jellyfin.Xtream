@@ -16,8 +16,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Xtream.Client;
 using Jellyfin.Xtream.Client.Models;
 using Jellyfin.Xtream.Providers;
 using Jellyfin.Xtream.Service;
@@ -34,7 +36,8 @@ namespace Jellyfin.Xtream;
 /// The Xtream Codes API channel.
 /// </summary>
 /// <param name="logger">Instance of the <see cref="ILogger"/> interface.</param>
-public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSourceDisplay
+/// <param name="xtreamClient">Instance of the <see cref="IXtreamClient"/> interface.</param>
+public class VodChannel(ILogger<VodChannel> logger, IXtreamClient xtreamClient) : IChannel, IDisableMediaSourceDisplay
 {
     /// <inheritdoc />
     public string? Name => "Xtream Video On-Demand";
@@ -116,7 +119,7 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
         }
     }
 
-    private static ChannelItemInfo CreateChannelItemInfo(StreamInfo stream)
+    private static ChannelItemInfo CreateChannelItemInfo(StreamInfo stream, VodInfo? vodInfo = null)
     {
         ParsedName parsedName = StreamService.ParseName(stream.Name);
 
@@ -126,16 +129,17 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             dateCreated = DateTimeOffset.FromUnixTimeSeconds(added).DateTime;
         }
 
-        // Build media source from the stream list data only.
-        // Detailed VOD info (duration, TMDB ID, audio/video codec details) is
-        // fetched later by XtreamVodProvider during metadata refresh, so we
-        // skip the per-item GetVodInfoAsync call here to keep browsing fast.
+        // Build media source with duration if available from VOD info.
+        int? durationSecs = vodInfo?.DurationSecs;
         List<MediaSourceInfo> sources =
         [
             Plugin.Instance.StreamService.GetMediaSourceInfo(
                 StreamType.Vod,
                 stream.StreamId,
                 stream.ContainerExtension,
+                durationSecs: durationSecs,
+                videoInfo: vodInfo?.Video,
+                audioInfo: vodInfo?.Audio,
                 name: stream.Name)
         ];
 
@@ -151,6 +155,7 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             MediaSources = sources,
             MediaType = ChannelMediaType.Video,
             Name = parsedName.Title,
+            RunTimeTicks = durationSecs.HasValue ? (long)durationSecs.Value * TimeSpan.TicksPerSecond : null,
             Tags = new List<string>(parsedName.Tags),
             Type = ChannelItemType.Media,
             ProviderIds = { { XtreamVodProvider.ProviderName, stream.StreamId.ToString(CultureInfo.InvariantCulture) } },
@@ -184,13 +189,43 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
     private async Task<ChannelItemResult> GetStreams(int categoryId, CancellationToken cancellationToken)
     {
         IEnumerable<StreamInfo> streams = await Plugin.Instance.StreamService.GetVodStreams(categoryId, cancellationToken).ConfigureAwait(false);
+        List<StreamInfo> streamList = streams.ToList();
         List<ChannelItemInfo> items = [];
 
-        foreach (var stream in streams)
+        // Fetch VOD info concurrently with throttling to get duration for each item.
+        int maxConcurrency = Plugin.Instance.Configuration.VodMaxConcurrency;
+        if (maxConcurrency < 1)
+        {
+            maxConcurrency = 75;
+        }
+
+        using var semaphore = new SemaphoreSlim(maxConcurrency, maxConcurrency);
+        var tasks = streamList.Select(async stream =>
+        {
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                VodStreamInfo vod = await xtreamClient.GetVodInfoAsync(Plugin.Instance.Creds, stream.StreamId, cancellationToken).ConfigureAwait(false);
+                return (stream, vodInfo: vod.Info);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex, "Could not fetch VOD info for stream {StreamId}, using stream list data only", stream.StreamId);
+                return (stream, vodInfo: (VodInfo?)null);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ToList();
+
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        foreach (var (stream, vodInfo) in results)
         {
             try
             {
-                items.Add(CreateChannelItemInfo(stream));
+                items.Add(CreateChannelItemInfo(stream, vodInfo));
             }
             catch (Exception ex)
             {

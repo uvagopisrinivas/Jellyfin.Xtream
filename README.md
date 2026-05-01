@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.16"
+VERSION="0.9.17"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -372,6 +372,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.17** - Fetch VOD duration during channel browse (concurrent with throttling) so RunTimeTicks is set on both ChannelItemInfo and MediaSourceInfo. Fixes duration not showing and premature watched status.
 - **v0.9.16** - Fix VOD duration not showing and premature watched status: keep probing enabled when duration is unknown so Jellyfin can discover stream length for movies with language tags in title.
 - **v0.9.15** - Fix SemaphoreFullException in XtreamVodProvider: semaphore was being recreated mid-use due to CurrentCount check; now tracks configured max separately and captures semaphore reference locally.
 - **v0.9.14** - Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only.
