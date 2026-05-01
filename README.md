@@ -115,7 +115,6 @@ cd /tmp
 rm -f Jellyfin.Xtream.dll
 wget "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v${VERSION}/Jellyfin.Xtream.dll"
 docker stop jellyfin
-rm -rf "$PLUGIN_DIR"
 mkdir -p "$PLUGIN_DIR"
 cp /tmp/Jellyfin.Xtream.dll "$PLUGIN_DIR/"
 cat > "$PLUGIN_DIR/meta.json" << EOF
@@ -279,7 +278,6 @@ scp Jellyfin.Xtream/bin/Release/net9.0/Jellyfin.Xtream.dll yourserver:/tmp/
 
 # On the server:
 docker stop jellyfin
-rm -rf "$PLUGIN_DIR"
 mkdir -p "$PLUGIN_DIR"
 cp /tmp/Jellyfin.Xtream.dll "$PLUGIN_DIR/"
 cat > "$PLUGIN_DIR/meta.json" << EOF
@@ -363,7 +361,6 @@ cd /tmp
 rm -f Jellyfin.Xtream.dll
 wget "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v${VERSION}/Jellyfin.Xtream.dll"
 docker stop jellyfin
-rm -rf "$PLUGIN_DIR"
 mkdir -p "$PLUGIN_DIR"
 cp /tmp/Jellyfin.Xtream.dll "$PLUGIN_DIR/"
 cat > "$PLUGIN_DIR/meta.json" << EOF
