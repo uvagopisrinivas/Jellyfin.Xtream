@@ -8,30 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.19.0",
-        "changelog": "Series folders use ChannelFolderType.Series for favorites/mark-played; season folders stay Container to preserve episode navigation.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
-        "checksum": "ee483359193db342fdfd4cb6d07a057c45c727bbe3f6981eddc175eb54ded9a3",
-        "timestamp": "2026-05-03T21:50:00Z"
-      },
-      {
-        "version": "0.9.18.0",
-        "changelog": "Use ChannelFolderType.Series and ChannelFolderType.Season for series/season folders to enable favorites and mark-as-played.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.18/Jellyfin.Xtream-v0.9.18.zip",
-        "checksum": "1c627d3a03bc20077f2c19cea73ae232381e1fef6fb05e1cd7ac0d8d2e50ba11",
-        "timestamp": "2026-05-03T21:27:00Z"
-      },
-      {
-        "version": "0.9.17.0",
-        "changelog": "Fetch VOD duration during channel browse (concurrent with throttling) so RunTimeTicks is set on both ChannelItemInfo and MediaSourceInfo. Fixes duration not showing and premature watched status.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.17/Jellyfin.Xtream-v0.9.17.zip",
-        "checksum": "3b9ea5e7a80a74a943914e0d2c875da9de7adee1da7783a9f0bbc09f7e47df0f",
-        "timestamp": "2026-05-01T13:21:00Z"
-      },
-      {
         "version": "0.9.16.0",
         "changelog": "Fix VOD duration not showing and premature watched status for movies with language tags in title. Keep probing enabled when duration is unknown.",
         "targetAbi": "10.11.0.0",
