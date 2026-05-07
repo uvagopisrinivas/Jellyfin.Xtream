@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.20.0",
+        "changelog": "Auto-refresh VOD and Series channels on plugin startup so selections persist across restarts without requiring a config re-save.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.20/Jellyfin.Xtream-v0.9.20.zip",
+        "checksum": "ba257c35a8bb25fd6971bf78fc62d9da22c9a74d2ecb209d9af4ea0aaa71470b",
+        "timestamp": "2026-05-07T18:35:00Z"
+      },
+      {
         "version": "0.9.19.0",
         "changelog": "Fix VOD audio-only playback after metadata refresh: keep probing enabled when no video stream info is present so Jellyfin discovers the video codec instead of falling back to -vn.",
         "targetAbi": "10.11.0.0",
