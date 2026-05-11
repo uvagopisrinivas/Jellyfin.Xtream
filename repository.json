@@ -8,14 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.17.0",
-        "changelog": "Fix EPG schedule timezone: explicitly mark program start/end times as UTC so Jellyfin clients auto-adjust to the viewer's local timezone.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.17/Jellyfin.Xtream-v0.9.17.zip",
-        "checksum": "fccbe8f6fa45073e2ce56df4abc6968a30c72173464010862f74a751b8f015e5",
-        "timestamp": "2026-05-10T08:14:00Z"
-      },
-      {
         "version": "0.9.16.0",
         "changelog": "Fix VOD duration not showing and premature watched status for movies with language tags in title. Keep probing enabled when duration is unknown.",
         "targetAbi": "10.11.0.0",
