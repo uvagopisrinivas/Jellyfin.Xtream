@@ -49,6 +49,7 @@ public class XtreamController(IXtreamClient xtreamClient) : ControllerBase
             Name = stream.Name,
             HasCatchup = stream.TvArchive,
             CatchupDuration = stream.TvArchiveDuration,
+            Number = stream.Num,
         };
 
     private static ItemResponse CreateItemResponse(Series series) =>
@@ -117,10 +118,28 @@ public class XtreamController(IXtreamClient xtreamClient) : ControllerBase
     public async Task<ActionResult<IEnumerable<StreamInfo>>> GetLiveStreams(int categoryId, CancellationToken cancellationToken)
     {
         Plugin plugin = Plugin.Instance;
-        List<StreamInfo> streams = await xtreamClient.GetLiveStreamsByCategoryAsync(
-          plugin.Creds,
-          categoryId,
-          cancellationToken).ConfigureAwait(false);
+
+        // Fetch both the category-filtered list and the global list.
+        // The category-filtered list resets num to 1,2,3... so we need
+        // the global list to get the real channel numbers.
+        var categoryStreamsTask = xtreamClient.GetLiveStreamsByCategoryAsync(plugin.Creds, categoryId, cancellationToken);
+        var allStreamsTask = xtreamClient.GetLiveStreamsAsync(plugin.Creds, cancellationToken);
+
+        List<StreamInfo> streams = await categoryStreamsTask.ConfigureAwait(false);
+        List<StreamInfo> allStreams = await allStreamsTask.ConfigureAwait(false);
+
+        // Build a lookup from stream_id to the global num
+        Dictionary<int, int> globalNumLookup = allStreams.ToDictionary(s => s.StreamId, s => s.Num);
+
+        // Apply the global num to category-filtered streams
+        foreach (var stream in streams)
+        {
+            if (globalNumLookup.TryGetValue(stream.StreamId, out int globalNum))
+            {
+                stream.Num = globalNum;
+            }
+        }
+
         return Ok(streams.Select(CreateItemResponse));
     }
 

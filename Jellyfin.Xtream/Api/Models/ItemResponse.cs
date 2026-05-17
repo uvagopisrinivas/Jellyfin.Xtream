@@ -39,4 +39,9 @@ public class ItemResponse
     /// Gets or sets the catch-up duration of the item in days.
     /// </summary>
     public int CatchupDuration { get; set; }
+
+    /// <summary>
+    /// Gets or sets the original channel number from the provider.
+    /// </summary>
+    public int Number { get; set; }
 }

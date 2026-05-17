@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.16"
+VERSION="0.9.17"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -235,8 +235,9 @@ gh release create v0.9.X /tmp/Jellyfin.Xtream-v0.9.X.zip \
 The plugin manifest at `https://uvagopisrinivas.github.io/Jellyfin.Xtream/repository.json` must be updated for Jellyfin's plugin catalog to see the new version. The `publish.yaml` workflow attempts this automatically, but often fails — always verify and update manually if needed.
 
 ```bash
-# Get the checksum of the zip (used by Jellyfin auto-update)
-shasum -a 256 /tmp/Jellyfin.Xtream-v0.9.X.zip
+# Get the MD5 checksum of the zip (used by Jellyfin auto-update)
+md5 -q /tmp/Jellyfin.Xtream-v0.9.X.zip        # macOS
+# md5sum /tmp/Jellyfin.Xtream-v0.9.X.zip | awk '{print $1}'  # Linux
 
 # Stash any uncommitted work and switch to gh-pages
 git stash
@@ -251,7 +252,7 @@ Edit `repository.json` and add a new entry at the **top** of the `versions` arra
   "changelog": "Description of changes",
   "targetAbi": "10.11.0.0",
   "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.X/Jellyfin.Xtream-v0.9.X.zip",
-  "checksum": "<sha256 checksum of zip from above>",
+  "checksum": "<md5 checksum of zip from above>",
   "timestamp": "2026-XX-XXTXX:XX:XXZ"
 }
 ```
@@ -375,6 +376,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.17** - Show global channel number next to channel names in Live TV config page. Fixes category-filtered API returning sequential numbers instead of real provider numbers.
 - **v0.9.16** - Fix VOD duration not showing and premature watched status: keep probing enabled when duration is unknown so Jellyfin can discover stream length for movies with language tags in title.
 - **v0.9.15** - Fix SemaphoreFullException in XtreamVodProvider: semaphore was being recreated mid-use due to CurrentCount check; now tracks configured max separately and captures semaphore reference locally.
 - **v0.9.14** - Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only.

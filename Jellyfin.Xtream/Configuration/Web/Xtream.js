@@ -29,7 +29,7 @@ const createItemRow = (item, state, update) => {
 
   td = document.createElement('td');
   const label = document.createElement('label');
-  label.innerText = item.Name;
+  label.innerText = item.Number ? `${item.Number}. ${item.Name}` : item.Name;
   td.appendChild(label);
   tr.appendChild(td);
 
