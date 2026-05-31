@@ -12,7 +12,7 @@
         "changelog": "Show global channel number next to channel names in Live TV config page. Fixes category-filtered API returning sequential numbers instead of real provider numbers.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.17/Jellyfin.Xtream-v0.9.17.zip",
-        "checksum": "e134e78de5d89336be63cfc248b1b02ead0be7fc24cb9c441f43f74e8a877a46",
+        "checksum": "8e67bacbe14968de7b7a43c42380c874",
         "timestamp": "2026-05-17T08:09:00Z"
       },
       {
@@ -20,7 +20,7 @@
         "changelog": "Fix VOD duration not showing and premature watched status for movies with language tags in title. Keep probing enabled when duration is unknown.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.16/Jellyfin.Xtream-v0.9.16.zip",
-        "checksum": "1ac7bc0ad51b5e957c88aaea9fbd701f3c66a68793c6074012f2eac72af41e5f",
+        "checksum": "901276b867ebf26298ab8aceba719916",
         "timestamp": "2026-05-01T12:56:00Z"
       },
       {
@@ -28,7 +28,7 @@
         "changelog": "Fix SemaphoreFullException in XtreamVodProvider: semaphore was being recreated mid-use due to CurrentCount check; now tracks configured max separately and captures semaphore reference locally.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.15/Jellyfin.Xtream-v0.9.15.zip",
-        "checksum": "ea2cb383c4b74698242fb79c5fe19f3a9cd73a06ab6e7fc5adcc8d6c794003dd",
+        "checksum": "312d8481cbcb8bcf57e16e6b06727d1b",
         "timestamp": "2026-04-28T00:38:00Z"
       },
       {
@@ -36,7 +36,7 @@
         "changelog": "Tri-state category selection (full/none/partial) fix; language filter restricted to VOD and Series pages only",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.14/Jellyfin.Xtream-v0.9.14.zip",
-        "checksum": "5260a952cf4f3dc52610952381a7978a11757f941d478b459cc23d5b335283a3",
+        "checksum": "264de86ec70d01313a4bd7778fa9627a",
         "timestamp": "2026-04-27T19:15:00Z"
       },
       {
@@ -44,7 +44,7 @@
         "changelog": "Add VodMaxConcurrency config (default 75) with semaphore throttle on VOD metadata fetches",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.13/Jellyfin.Xtream-v0.9.13.zip",
-        "checksum": "220c906bc8b3cf36f61cac1047d42fde4fbd418da6fa231b7c0639c7d8010dab",
+        "checksum": "3d1309bcd8cf52d2198f0a7979da8f55",
         "timestamp": "2026-04-27T07:39:00Z"
       },
       {
@@ -52,7 +52,7 @@
         "changelog": "Remove per-restart cache invalidation to fix slow series loading and SQLite constraint errors. Keep 12-hour time-based rotation.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.12/Jellyfin.Xtream-v0.9.12.zip",
-        "checksum": "d991bc7ee97d2daab113b21e0d497dd7f65b22f9badff3bd7ff44ef3729ed0a8",
+        "checksum": "4777d1986dc93fefc8174dc1d9eaf186",
         "timestamp": "2026-04-26T22:30:00Z"
       },
       {
@@ -60,7 +60,7 @@
         "changelog": "Optimize series image fallback: resolve series cover once and reuse for all seasons/episodes. Add series info cache and time-based cache invalidation.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.11/Jellyfin.Xtream-v0.9.11.zip",
-        "checksum": "fcf840a6784ecd670d2a215faf68032985570dd635a0b4c3c849c2535cc3ac4e",
+        "checksum": "254040851dfe93e201d7f2cc7f93c923",
         "timestamp": "2026-04-26T22:16:00Z"
       },
       {
@@ -68,7 +68,7 @@
         "changelog": "Defer per-item VOD info fetching to metadata refresh for faster category browsing",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.10/Jellyfin.Xtream-v0.9.10.zip",
-        "checksum": "719d543a664b8f93e5fc508ed3fd1175538376ee3f8828f7f18f43890c5e0bae",
+        "checksum": "209f3e9b02646d0e42d9deccccfab42d",
         "timestamp": "2026-04-26T18:36:00Z"
       },
       {
@@ -76,7 +76,7 @@
         "changelog": "Disable probing when language tracks are parsed to prevent Jellyfin from overriding DefaultAudioStreamIndex",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.9/Jellyfin.Xtream.dll",
-        "checksum": "24566f5c2f8ce1dfe42b19bbf163d61781e8515323e2da9be6d62f2a1202cac0",
+        "checksum": "b8409d9eec4e1de2a32b7de00cb2be56",
         "timestamp": "2026-04-26T00:00:00Z"
       },
       {
@@ -84,7 +84,7 @@
         "changelog": "Set DefaultAudioStreamIndex on MediaSourceInfo to force preferred language track in ffmpeg transcoding",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.8/Jellyfin.Xtream.dll",
-        "checksum": "607eac1cfb77aaedeb07157336ef7f04037f00bdac7ebf1022df9e98ca6912c9",
+        "checksum": "057a10364d3dc0d525208a6b3c83fcfa",
         "timestamp": "2026-04-26T00:00:00Z"
       },
       {
@@ -92,7 +92,7 @@
         "changelog": "Preferred audio language config with UI dropdown. Support all Xtream title patterns for language parsing.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.7/Jellyfin.Xtream.dll",
-        "checksum": "5b49f53c371fb1cd67eec9275edfce3281290e1447c0521470dfd6d83aa23f10",
+        "checksum": "679a353e57d4a4169ade3c19a5798488",
         "timestamp": "2026-04-26T00:00:00Z"
       },
       {
@@ -100,7 +100,7 @@
         "changelog": "Parse audio languages from stream titles, restore IDisableMediaSourceDisplay, audio track discovery for VOD/Series",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.6/Jellyfin.Xtream.dll",
-        "checksum": "df345ad8c443455716443ebeb5c8203a130f773563ef015f30a7f25a7bd80e1a",
+        "checksum": "c072bb76cddeb6430537128610d14498",
         "timestamp": "2026-04-26T00:00:00Z"
       },
       {
@@ -108,7 +108,7 @@
         "changelog": "Enable audio track discovery for VOD/Series: removed IDisableMediaSourceDisplay so Jellyfin probes remote streams and discovers all audio languages. Added diagnostic logging for Xtream API audio info.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.5/Jellyfin.Xtream.dll",
-        "checksum": "2af05c3b2d73671589466e9277a75c7920f398fddcb5da7bd1c4694f3d9f1520",
+        "checksum": "7a1cb945d17dfb004e1f587186ca981e",
         "timestamp": "2026-04-26T00:00:00Z"
       },
       {
@@ -116,7 +116,7 @@
         "changelog": "Audio language track discovery: let Jellyfin probe VOD/Series for all audio tracks. Added diagnostic logging for Xtream API audio info.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.4/Jellyfin.Xtream.dll",
-        "checksum": "c8384250a14a0f715830ad46b5f7babdec1ddeabaf67fc8f433e20add1c03309",
+        "checksum": "92d2ea8f5027e958965dbcdc40cd81b8",
         "timestamp": "2026-04-26T00:00:00Z"
       },
       {
@@ -124,7 +124,7 @@
         "changelog": "Add per-item error handling across all channels to prevent plugin crashes from malformed API data",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.3/Jellyfin.Xtream.dll",
-        "checksum": "",
+        "checksum": "a0bd9695c730705298be920e33e2a4",
         "timestamp": "2026-04-20T00:00:00Z"
       },
       {
@@ -140,7 +140,7 @@
         "changelog": "Fix null/empty string handling for images, subtitles, and metadata across all channels",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.1/Jellyfin.Xtream.dll",
-        "checksum": "9410de65eb1859d2a4aa53b71681bb113d2f514fffa9171a5fdfcbde480f1f47",
+        "checksum": "327a9366afb3592cf68af5d1248b7600",
         "timestamp": "2026-04-19T14:35:00Z"
       },
       {
