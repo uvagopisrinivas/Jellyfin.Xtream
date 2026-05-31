@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.18.0",
+        "changelog": "Fix publish workflow to use MD5 checksums for Jellyfin plugin catalog compatibility",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.18/Jellyfin.Xtream-v0.9.18.zip",
+        "checksum": "752f820c72f06421afa63c7ab3eae509",
+        "timestamp": "2026-05-30T22:39:00Z"
+      },
+      {
         "version": "0.9.17.0",
         "changelog": "Show global channel number next to channel names in Live TV config page. Fixes category-filtered API returning sequential numbers instead of real provider numbers.",
         "targetAbi": "10.11.0.0",
