@@ -12,7 +12,7 @@
         "changelog": "Show global channel number next to channel names in Live TV config page. Fixes category-filtered API returning sequential numbers instead of real provider numbers.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.17/Jellyfin.Xtream-v0.9.17.zip",
-        "checksum": "8e67bacbe14968de7b7a43c42380c874",
+        "checksum": "0c4c0974dfdfe9d8a6bcb8c294602bbd",
         "timestamp": "2026-05-17T08:09:00Z"
       },
       {
