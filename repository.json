@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.19.0",
+        "changelog": "Rewrite image URLs to use configured BaseUrl host. Fixes image timeouts when provider image server is unreachable.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
+        "checksum": "4966cf78c418cdc6f1b5f050befbac6b",
+        "timestamp": "2026-06-04T23:07:00Z"
+      },
+      {
         "version": "0.9.18.0",
         "changelog": "Fix publish workflow to use MD5 checksums for Jellyfin plugin catalog compatibility",
         "targetAbi": "10.11.0.0",
