@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.19.0",
+        "changelog": "Fix series navigation hang: remove image URLs from series items to prevent Jellyfin blocking on slow provider image server. Cache stampede prevention, 15s API timeout, null guards.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
+        "checksum": "b631c63504bee98211f993fb952c6a3f",
+        "timestamp": "2026-06-04T18:19:00Z"
+      },
+      {
         "version": "0.9.18.0",
         "changelog": "Fix publish workflow to use MD5 checksums for Jellyfin plugin catalog compatibility",
         "targetAbi": "10.11.0.0",
