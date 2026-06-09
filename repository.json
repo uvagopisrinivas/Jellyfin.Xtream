@@ -8,22 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.20.0",
-        "changelog": "Fix NullReferenceException crash when opening series folders. Added OnlyObjectConverter and null checks for providers returning malformed series info.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.20/Jellyfin.Xtream-v0.9.20.zip",
-        "checksum": "6115f816bb26199881d2fab20e4ef720",
-        "timestamp": "2026-06-09T21:19:00Z"
-      },
-      {
-        "version": "0.9.19.0",
-        "changelog": "Separate credential fetching: SeriesChannel and VodChannel now independently grab plugin credentials and call the Xtream API directly.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
-        "checksum": "1e90f4ce0624f5d5bfe8b6b006913121",
-        "timestamp": "2026-06-09T15:11:00Z"
-      },
-      {
         "version": "0.9.18.0",
         "changelog": "Fix publish workflow to use MD5 checksums for Jellyfin plugin catalog compatibility",
         "targetAbi": "10.11.0.0",
