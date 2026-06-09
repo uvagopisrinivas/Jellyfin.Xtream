@@ -8,20 +8,12 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.20.0",
-        "changelog": "Skip per-episode images for large seasons (>50 eps), use series cover instead. Prevents system slowdown.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.20/Jellyfin.Xtream-v0.9.20.zip",
-        "checksum": "6ac7591f42ade5f02f0d4ce9842809dd",
-        "timestamp": "2026-06-05T06:01:00Z"
-      },
-      {
         "version": "0.9.19.0",
-        "changelog": "Rewrite image URLs to use configured BaseUrl host. Fixes image timeouts when provider image server is unreachable.",
+        "changelog": "Separate credential fetching: SeriesChannel and VodChannel now independently grab plugin credentials and call the Xtream API directly.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
-        "checksum": "4966cf78c418cdc6f1b5f050befbac6b",
-        "timestamp": "2026-06-04T23:07:00Z"
+        "checksum": "23d96b8cab3b6a2a9e7ec2bc8d9823db",
+        "timestamp": "2026-06-09T08:30:00Z"
       },
       {
         "version": "0.9.18.0",
