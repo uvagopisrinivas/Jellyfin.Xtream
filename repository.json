@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.20.0",
+        "changelog": "Use ChannelFolderType.Series for series items to enable favorites in Jellyfin UI.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.20/Jellyfin.Xtream-v0.9.20.zip",
+        "checksum": "1b7288cbfcc45ad7cdd421a9020a62fa",
+        "timestamp": "2026-06-09T08:57:00Z"
+      },
+      {
         "version": "0.9.19.0",
         "changelog": "Separate credential fetching: SeriesChannel and VodChannel now independently grab plugin credentials and call the Xtream API directly.",
         "targetAbi": "10.11.0.0",
