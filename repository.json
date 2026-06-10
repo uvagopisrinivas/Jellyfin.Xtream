@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.20.0",
+        "changelog": "Fix series category crash: make deserialization resilient to non-standard Xtream API responses (nullable ratings/timestamps, PHP object-as-array for episodes dictionary).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.20/Jellyfin.Xtream-v0.9.20.zip",
+        "checksum": "3b9010dea8a2824ef4405864cfe6f9d0",
+        "timestamp": "2026-06-10T05:07:00Z"
+      },
+      {
         "version": "0.9.19.0",
         "changelog": "Fix crash when opening series folders. Removed SeriesName from folder-level channel items to prevent Jellyfin SeriesMetadataService from creating/removing virtual seasons.",
         "targetAbi": "10.11.0.0",
