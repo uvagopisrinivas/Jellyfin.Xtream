@@ -120,7 +120,10 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get channel items");
-            throw;
+            return new ChannelItemResult()
+            {
+                TotalRecordCount = 0,
+            };
         }
 
         return new ChannelItemResult()
@@ -134,10 +137,13 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         try
         {
             string name = !string.IsNullOrWhiteSpace(series.Name) ? StreamService.ParseName(series.Name).Title : $"Series {series.SeriesId}";
+            string? imageUrl = !string.IsNullOrWhiteSpace(series.Cover) ? series.Cover : null;
+            logger.LogInformation("Series {SeriesId} ({Name}) ImageUrl: {ImageUrl}", series.SeriesId, name, imageUrl ?? "null");
             return new ChannelItemInfo()
             {
                 FolderType = ChannelFolderType.Container,
                 Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
+                ImageUrl = imageUrl,
                 Name = name,
                 Type = ChannelItemType.Folder,
             };
