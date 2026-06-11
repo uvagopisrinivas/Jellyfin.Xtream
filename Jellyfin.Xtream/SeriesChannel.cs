@@ -137,7 +137,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         try
         {
             string name = !string.IsNullOrWhiteSpace(series.Name) ? StreamService.ParseName(series.Name).Title : $"Series {series.SeriesId}";
-            string? imageUrl = !string.IsNullOrWhiteSpace(series.Cover) ? series.Cover : null;
+            string? imageUrl = RewriteImageUrl(series.Cover);
             logger.LogInformation("Series {SeriesId} ({Name}) ImageUrl: {ImageUrl}", series.SeriesId, name, imageUrl ?? "null");
             return new ChannelItemInfo()
             {
@@ -153,6 +153,30 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             logger.LogError(ex, "Failed to create channel item for series {SeriesId} ({Name})", series.SeriesId, series.Name);
             return null;
         }
+    }
+
+    /// <summary>
+    /// Rewrites image URLs from the Xtream API to use the configured BaseUrl.
+    /// Provider images hosted on the Xtream server use the path /images/{hash}.ext
+    /// but the host in the URL may be wrong. External CDN URLs (tmdb, hotstar, etc.)
+    /// are left unchanged.
+    /// </summary>
+    private static string? RewriteImageUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return null;
+        }
+
+        // If the URL contains /images/ path, rewrite with configured BaseUrl
+        if (Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) && uri.AbsolutePath.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+        {
+            string baseUrl = Plugin.Instance.Configuration.BaseUrl.TrimEnd('/');
+            return $"{baseUrl}{uri.AbsolutePath}";
+        }
+
+        // External CDN URLs (tmdb, hotstar, wikipedia, etc.) - use as-is
+        return url;
     }
 
     private static List<string> GetGenres(string genreString)
