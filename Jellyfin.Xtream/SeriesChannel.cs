@@ -105,12 +105,16 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
 
             if (prefix == StreamService.SeriesPrefix)
             {
+                logger.LogInformation("Getting seasons for seriesId={SeriesId}", seriesId);
                 return await GetSeasons(seriesId, cancellationToken).ConfigureAwait(false);
             }
 
             if (prefix == StreamService.SeasonPrefix)
             {
-                return await GetEpisodes(seriesId, seasonId, cancellationToken).ConfigureAwait(false);
+                logger.LogInformation("Getting episodes for seriesId={SeriesId}, seasonId={SeasonId}", seriesId, seasonId);
+                var result = await GetEpisodes(seriesId, seasonId, cancellationToken).ConfigureAwait(false);
+                logger.LogInformation("Got {Count} episodes for seriesId={SeriesId}, seasonId={SeasonId}", result.Items.Count, seriesId, seasonId);
+                return result;
             }
         }
         catch (Exception ex)
@@ -186,6 +190,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             FolderType = ChannelFolderType.Season,
             Genres = GetGenres(serie.Genre),
             Id = StreamService.ToGuid(StreamService.SeasonPrefix, serie.CategoryId, seriesId, seasonId).ToString(),
+            ImageUrl = !string.IsNullOrEmpty(cover) ? cover : null,
             IndexNumber = seasonId,
             Name = name,
             Overview = overview,
