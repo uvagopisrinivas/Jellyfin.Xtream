@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.19.0",
+        "changelog": "Fix data URI image crash and add VOD diagnostic logging. Reject data: URIs and non-http schemes in RewriteImageUrl to prevent Jellyfin SkiaEncoder crash.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
+        "checksum": "759ef4ba2710807bfddfb098a818bdd4",
+        "timestamp": "2026-06-12T01:57:00Z"
+      },
+      {
         "version": "0.9.18.0",
         "changelog": "Fix series TV app navigation (Series+Container types), rewrite provider-hosted image URLs for Series and VOD.",
         "targetAbi": "10.11.0.0",
