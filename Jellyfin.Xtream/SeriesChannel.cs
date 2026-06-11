@@ -138,10 +138,9 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         {
             string name = !string.IsNullOrWhiteSpace(series.Name) ? StreamService.ParseName(series.Name).Title : $"Series {series.SeriesId}";
             string? imageUrl = RewriteImageUrl(series.Cover);
-            logger.LogInformation("Series {SeriesId} ({Name}) ImageUrl: {ImageUrl}", series.SeriesId, name, imageUrl ?? "null");
             return new ChannelItemInfo()
             {
-                FolderType = ChannelFolderType.Container,
+                FolderType = ChannelFolderType.Series,
                 Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
                 ImageUrl = imageUrl,
                 Name = name,
