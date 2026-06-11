@@ -382,12 +382,23 @@ public partial class StreamService(IXtreamClient xtreamClient)
             return new List<Tuple<SeriesStreamInfo, int>>();
         }
 
-        // Use Seasons list as the source of truth instead of Episodes dictionary keys
-        // This prevents seasons from disappearing when the API filters watched episodes
+        // Collect all season numbers that have episodes available
+        HashSet<int> seasonsWithEpisodes = new(series.Episodes.Keys);
+        foreach (var episodes in series.Episodes.Values)
+        {
+            foreach (var ep in episodes)
+            {
+                seasonsWithEpisodes.Add(ep.Season);
+            }
+        }
+
+        // Use Seasons list for metadata but only include seasons that have episodes
         if (series.Seasons != null && series.Seasons.Count > 0)
         {
-            // Convert to list immediately to avoid lazy evaluation issues with TV apps
-            return series.Seasons.Select((Season season) => new Tuple<SeriesStreamInfo, int>(series, season.SeasonNumber)).ToList();
+            return series.Seasons
+                .Where(season => seasonsWithEpisodes.Contains(season.SeasonNumber))
+                .Select((Season season) => new Tuple<SeriesStreamInfo, int>(series, season.SeasonNumber))
+                .ToList();
         }
 
         // Fallback to Episodes dictionary keys if Seasons list is empty
@@ -406,10 +417,21 @@ public partial class StreamService(IXtreamClient xtreamClient)
         SeriesStreamInfo series = await GetCachedSeriesInfoAsync(seriesId, cancellationToken).ConfigureAwait(false);
         Season? season = series.Seasons?.FirstOrDefault(s => s.SeasonNumber == seasonId);
 
-        // Check if the season exists in the Episodes dictionary before accessing
-        if (!series.Episodes.TryGetValue(seasonId, out ICollection<Episode>? episodes) || episodes == null || episodes.Count == 0)
+        ICollection<Episode>? episodes = null;
+
+        // Try direct dictionary lookup first (key matches season number)
+        if (!series.Episodes.TryGetValue(seasonId, out episodes) || episodes == null || episodes.Count == 0)
         {
-            // Return empty list if season not found instead of crashing
+            // Fallback: some providers key episodes differently than SeasonNumber.
+            // Search all episodes across all keys for ones matching this season number.
+            episodes = series.Episodes.Values
+                .SelectMany(e => e)
+                .Where(e => e.Season == seasonId)
+                .ToList();
+        }
+
+        if (episodes == null || episodes.Count == 0)
+        {
             return new List<Tuple<SeriesStreamInfo, Season?, Episode>>();
         }
 
