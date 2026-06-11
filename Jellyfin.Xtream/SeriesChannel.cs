@@ -136,12 +136,9 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         {
             CommunityRating = (float)series.Rating5Based,
             DateModified = series.LastModified,
-            FolderType = ChannelFolderType.Series,
-            Genres = GetGenres(series.Genre),
+            FolderType = ChannelFolderType.Container,
             Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
             Name = parsedName.Title,
-            SeriesName = parsedName.Title,
-            People = GetPeople(series.Cast),
             Tags = new List<string>(parsedName.Tags),
             Type = ChannelItemType.Folder,
         };
@@ -186,13 +183,11 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         return new()
         {
             DateCreated = created,
-            FolderType = ChannelFolderType.Season,
-            Genres = GetGenres(serie.Genre),
+            FolderType = ChannelFolderType.Container,
             Id = StreamService.ToGuid(StreamService.SeasonPrefix, serie.CategoryId, seriesId, seasonId).ToString(),
             IndexNumber = seasonId,
             Name = name,
             Overview = overview,
-            People = GetPeople(serie.Cast),
             Tags = tags,
             Type = ChannelItemType.Folder,
         };
@@ -201,7 +196,6 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     private ChannelItemInfo CreateChannelItemInfo(SeriesStreamInfo series, Season? season, Episode episode)
     {
         Client.Models.SeriesInfo serie = series.Info;
-        ParsedName parsedName = StreamService.ParseName(episode.Title);
         List<MediaSourceInfo> sources =
         [
             Plugin.Instance.StreamService.GetMediaSourceInfo(
@@ -216,18 +210,15 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         {
             ContentType = ChannelMediaContentType.Episode,
             DateCreated = episode.Added,
-            Genres = GetGenres(serie.Genre),
             Id = StreamService.ToGuid(StreamService.EpisodePrefix, 0, 0, episode.EpisodeId).ToString(),
             IndexNumber = episode.EpisodeNum,
             IsLiveStream = false,
             MediaSources = sources,
             MediaType = ChannelMediaType.Video,
-            Name = $"Episode {episode.EpisodeNum}",
+            Name = $"S{episode.Season:D2}E{episode.EpisodeNum:D2} - {episode.Title}",
             Overview = episode.Info?.Plot,
             ParentIndexNumber = episode.Season,
-            People = GetPeople(serie.Cast),
             RunTimeTicks = episode.Info?.DurationSecs * TimeSpan.TicksPerSecond,
-            Tags = new(parsedName.Tags),
             Type = ChannelItemType.Media,
         };
     }
