@@ -129,19 +129,24 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         };
     }
 
-    private ChannelItemInfo CreateChannelItemInfo(Series series)
+    private ChannelItemInfo? CreateChannelItemInfo(Series series)
     {
-        ParsedName parsedName = StreamService.ParseName(series.Name);
-        return new ChannelItemInfo()
+        try
         {
-            CommunityRating = (float)series.Rating5Based,
-            DateModified = series.LastModified,
-            FolderType = ChannelFolderType.Container,
-            Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
-            Name = parsedName.Title,
-            Tags = new List<string>(parsedName.Tags),
-            Type = ChannelItemType.Folder,
-        };
+            string name = !string.IsNullOrWhiteSpace(series.Name) ? StreamService.ParseName(series.Name).Title : $"Series {series.SeriesId}";
+            return new ChannelItemInfo()
+            {
+                FolderType = ChannelFolderType.Container,
+                Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
+                Name = name,
+                Type = ChannelItemType.Folder,
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create channel item for series {SeriesId} ({Name})", series.SeriesId, series.Name);
+            return null;
+        }
     }
 
     private static List<string> GetGenres(string genreString)
@@ -193,34 +198,51 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         };
     }
 
-    private ChannelItemInfo CreateChannelItemInfo(SeriesStreamInfo series, Season? season, Episode episode)
+    private ChannelItemInfo? CreateChannelItemInfo(SeriesStreamInfo series, Season? season, Episode episode)
     {
-        Client.Models.SeriesInfo serie = series.Info;
-        List<MediaSourceInfo> sources =
-        [
-            Plugin.Instance.StreamService.GetMediaSourceInfo(
-                StreamType.Series,
-                episode.EpisodeId,
-                episode.ContainerExtension,
-                videoInfo: episode.Info?.Video,
-                audioInfo: episode.Info?.Audio)
-        ];
-
-        return new()
+        try
         {
-            ContentType = ChannelMediaContentType.Episode,
-            DateCreated = episode.Added,
-            Id = StreamService.ToGuid(StreamService.EpisodePrefix, 0, 0, episode.EpisodeId).ToString(),
-            IndexNumber = episode.EpisodeNum,
-            IsLiveStream = false,
-            MediaSources = sources,
-            MediaType = ChannelMediaType.Video,
-            Name = $"S{episode.Season:D2}E{episode.EpisodeNum:D2} - {episode.Title}",
-            Overview = episode.Info?.Plot,
-            ParentIndexNumber = episode.Season,
-            RunTimeTicks = episode.Info?.DurationSecs * TimeSpan.TicksPerSecond,
-            Type = ChannelItemType.Media,
-        };
+            string title = !string.IsNullOrWhiteSpace(episode.Title) ? episode.Title : "Episode";
+            string name = $"S{episode.Season:D2}E{episode.EpisodeNum:D2} - {title}";
+            string? extension = !string.IsNullOrEmpty(episode.ContainerExtension) ? episode.ContainerExtension : null;
+
+            List<MediaSourceInfo> sources =
+            [
+                Plugin.Instance.StreamService.GetMediaSourceInfo(
+                    StreamType.Series,
+                    episode.EpisodeId,
+                    extension,
+                    videoInfo: episode.Info?.Video,
+                    audioInfo: episode.Info?.Audio)
+            ];
+
+            long? runTimeTicks = null;
+            if (episode.Info?.DurationSecs != null && episode.Info.DurationSecs > 0)
+            {
+                runTimeTicks = episode.Info.DurationSecs * TimeSpan.TicksPerSecond;
+            }
+
+            return new()
+            {
+                ContentType = ChannelMediaContentType.Episode,
+                DateCreated = episode.Added,
+                Id = StreamService.ToGuid(StreamService.EpisodePrefix, 0, 0, episode.EpisodeId).ToString(),
+                IndexNumber = episode.EpisodeNum > 0 ? episode.EpisodeNum : null,
+                IsLiveStream = false,
+                MediaSources = sources,
+                MediaType = ChannelMediaType.Video,
+                Name = name,
+                Overview = episode.Info?.Plot,
+                ParentIndexNumber = episode.Season > 0 ? episode.Season : null,
+                RunTimeTicks = runTimeTicks,
+                Type = ChannelItemType.Media,
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create channel item for episode {EpisodeId} ({Title})", episode.EpisodeId, episode.Title);
+            return null;
+        }
     }
 
     private async Task<ChannelItemResult> GetCategories(CancellationToken cancellationToken)
@@ -238,7 +260,11 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     private async Task<ChannelItemResult> GetSeries(int categoryId, CancellationToken cancellationToken)
     {
         IEnumerable<Series> series = await Plugin.Instance.StreamService.GetSeries(categoryId, cancellationToken).ConfigureAwait(false);
-        List<ChannelItemInfo> items = new(series.Select(CreateChannelItemInfo));
+        List<ChannelItemInfo> items = series
+            .Select(CreateChannelItemInfo)
+            .Where(item => item != null)
+            .Cast<ChannelItemInfo>()
+            .ToList();
         return new()
         {
             Items = items,
@@ -261,8 +287,11 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     private async Task<ChannelItemResult> GetEpisodes(int seriesId, int seasonId, CancellationToken cancellationToken)
     {
         IEnumerable<Tuple<SeriesStreamInfo, Season?, Episode>> episodes = await Plugin.Instance.StreamService.GetEpisodes(seriesId, seasonId, cancellationToken).ConfigureAwait(false);
-        List<ChannelItemInfo> items = new List<ChannelItemInfo>(
-            episodes.Select((Tuple<SeriesStreamInfo, Season?, Episode> tuple) => CreateChannelItemInfo(tuple.Item1, tuple.Item2, tuple.Item3)));
+        List<ChannelItemInfo> items = episodes
+            .Select((Tuple<SeriesStreamInfo, Season?, Episode> tuple) => CreateChannelItemInfo(tuple.Item1, tuple.Item2, tuple.Item3))
+            .Where(item => item != null)
+            .Cast<ChannelItemInfo>()
+            .ToList();
         return new()
         {
             Items = items,
