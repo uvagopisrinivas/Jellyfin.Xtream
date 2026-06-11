@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.19.0",
+        "changelog": "Remove per-episode ImageUrl to eliminate image download timeout spam when browsing series.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
+        "checksum": "126ff1550dc462cefc8ba947221e906b",
+        "timestamp": "2026-06-11T07:35:00Z"
+      },
+      {
         "version": "0.9.18.0",
         "changelog": "Series crash fix: exception handling, throttled parallel API calls (SeriesMaxConcurrency=10), parallel episode processing for 600+ episode series, debug logging.",
         "targetAbi": "10.11.0.0",
