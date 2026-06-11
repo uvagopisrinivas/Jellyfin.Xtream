@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.18.0",
+        "changelog": "Series crash fix: exception handling, throttled parallel API calls (SeriesMaxConcurrency=10), parallel episode processing for 600+ episode series, debug logging.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.18/Jellyfin.Xtream-v0.9.18.zip",
+        "checksum": "29b408b6eec51157b96f6596021f5b60",
+        "timestamp": "2026-06-11T07:16:00Z"
+      },
+      {
         "version": "0.9.17.0",
         "changelog": "Show global channel number next to channel names in Live TV config page. Fixes category-filtered API returning sequential numbers instead of real provider numbers.",
         "targetAbi": "10.11.0.0",
