@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.21.0",
+        "changelog": "Log full stream JSON object for VOD items to diagnose image URL issues.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.21/Jellyfin.Xtream-v0.9.21.zip",
+        "checksum": "de9f6f38048a61c9d2c648e276209de3",
+        "timestamp": "2026-06-12T02:50:00Z"
+      },
+      {
         "version": "0.9.20.0",
         "changelog": "Add before/after debug logging for VOD image URL rewrite to diagnose image download failures.",
         "targetAbi": "10.11.0.0",
