@@ -139,7 +139,6 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             FolderType = ChannelFolderType.Series,
             Genres = GetGenres(series.Genre),
             Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
-            ImageUrl = series.Cover,
             Name = parsedName.Title,
             SeriesName = parsedName.Title,
             People = GetPeople(series.Cast),
@@ -190,7 +189,6 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             FolderType = ChannelFolderType.Season,
             Genres = GetGenres(serie.Genre),
             Id = StreamService.ToGuid(StreamService.SeasonPrefix, serie.CategoryId, seriesId, seasonId).ToString(),
-            ImageUrl = !string.IsNullOrEmpty(cover) ? cover : null,
             IndexNumber = seasonId,
             Name = name,
             Overview = overview,
@@ -213,10 +211,6 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
                 videoInfo: episode.Info?.Video,
                 audioInfo: episode.Info?.Audio)
         ];
-
-        string? cover = episode.Info?.MovieImage;
-        cover ??= season?.Cover;
-        cover ??= serie.Cover;
 
         return new()
         {
