@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.18.0",
+        "changelog": "Restore original series channel with proper Series/Season folder types from upstream.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.18/Jellyfin.Xtream-v0.9.18.zip",
+        "checksum": "8cf8bcd208407815e2650a2c1e9a78e0",
+        "timestamp": "2026-06-11T08:07:00Z"
+      },
+      {
         "version": "0.9.17.0",
         "changelog": "Show global channel number next to channel names in Live TV config page. Fixes category-filtered API returning sequential numbers instead of real provider numbers.",
         "targetAbi": "10.11.0.0",
