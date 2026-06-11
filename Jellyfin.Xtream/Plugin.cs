@@ -79,7 +79,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
         get
         {
             long timeBucket = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 43200; // 12-hour buckets
-            return Assembly.GetCallingAssembly().GetName().Version?.ToString()
+            return "v2_" + Assembly.GetCallingAssembly().GetName().Version?.ToString()
                 + Configuration.GetHashCode()
                 + "_" + timeBucket;
         }
