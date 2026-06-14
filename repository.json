@@ -12,7 +12,7 @@
         "changelog": "Fix VOD/Series playback crash from fake audio stream metadata conflicting with actual file streams when title contains language names. Always probe; keep DefaultAudioStreamIndex hint only.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
-        "checksum": "283d43defe836376ba45961a4928db27",
+        "checksum": "f7187ad3930b0734e9e09ced3203d124",
         "timestamp": "2026-06-13T20:50:00Z"
       },
       {
