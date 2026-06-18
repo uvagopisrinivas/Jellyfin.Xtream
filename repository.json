@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.19.0",
+        "changelog": "Fix series playback error: pass durationSecs and name to episode media source, skip episodes with invalid IDs.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.19/Jellyfin.Xtream-v0.9.19.zip",
+        "checksum": "bb8f8d333c05511f12be4873b441b2dd",
+        "timestamp": "2026-06-18T16:46:00Z"
+      },
+      {
         "version": "0.9.18.0",
         "changelog": "Fix series TV app navigation (Series+Container types), rewrite provider-hosted image URLs for Series and VOD.",
         "targetAbi": "10.11.0.0",
