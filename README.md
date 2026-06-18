@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.19"
+VERSION="0.9.20"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -376,6 +376,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.20** - Fix series playback: use Container FolderType for series items so Jellyfin resolves inline media sources correctly.
 - **v0.9.19** - Fix series playback error "Unable to find a valid media source": pass durationSecs and name to episode media source, skip episodes with invalid IDs.
 - **v0.9.17** - Show global channel number next to channel names in Live TV config page. Fixes category-filtered API returning sequential numbers instead of real provider numbers.
 - **v0.9.16** - Fix VOD duration not showing and premature watched status: keep probing enabled when duration is unknown so Jellyfin can discover stream length for movies with language tags in title.

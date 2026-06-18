@@ -140,7 +140,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             string? imageUrl = RewriteImageUrl(series.Cover);
             return new ChannelItemInfo()
             {
-                FolderType = ChannelFolderType.Series,
+                FolderType = ChannelFolderType.Container,
                 Id = StreamService.ToGuid(StreamService.SeriesPrefix, series.CategoryId, series.SeriesId, 0).ToString(),
                 ImageUrl = imageUrl,
                 Name = name,
