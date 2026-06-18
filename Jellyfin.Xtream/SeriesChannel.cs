@@ -231,6 +231,12 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
     {
         try
         {
+            if (episode.EpisodeId <= 0)
+            {
+                logger.LogWarning("Skipping episode with invalid id {EpisodeId} in season {Season}", episode.EpisodeId, episode.Season);
+                return null;
+            }
+
             string title = !string.IsNullOrWhiteSpace(episode.Title) ? episode.Title : "Episode";
             string name = $"S{episode.Season:D2}E{episode.EpisodeNum:D2} - {title}";
             string? extension = !string.IsNullOrEmpty(episode.ContainerExtension) ? episode.ContainerExtension : null;
@@ -241,8 +247,10 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
                     StreamType.Series,
                     episode.EpisodeId,
                     extension,
+                    durationSecs: episode.Info?.DurationSecs,
                     videoInfo: episode.Info?.Video,
-                    audioInfo: episode.Info?.Audio)
+                    audioInfo: episode.Info?.Audio,
+                    name: name)
             ];
 
             long? runTimeTicks = null;
