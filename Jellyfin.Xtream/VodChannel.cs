@@ -87,24 +87,18 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
     /// <inheritdoc />
     public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
     {
-        logger.LogInformation("GetChannelItems called with FolderId={FolderId}", query.FolderId ?? "(null)");
         try
         {
             if (string.IsNullOrEmpty(query.FolderId))
             {
-                var catResult = await GetCategories(cancellationToken).ConfigureAwait(false);
-                logger.LogInformation("Returning {Count} categories", catResult.Items.Count);
-                return catResult;
+                return await GetCategories(cancellationToken).ConfigureAwait(false);
             }
 
             Guid guid = Guid.Parse(query.FolderId);
             StreamService.FromGuid(guid, out int prefix, out int categoryId, out int _, out int _);
-            logger.LogInformation("Parsed FolderId: prefix=0x{Prefix:X8}, categoryId={CategoryId}", prefix, categoryId);
             if (prefix == StreamService.VodCategoryPrefix)
             {
-                var streamResult = await GetStreams(categoryId, cancellationToken).ConfigureAwait(false);
-                logger.LogInformation("Returning {Count} streams for categoryId={CategoryId}", streamResult.Items.Count, categoryId);
-                return streamResult;
+                return await GetStreams(categoryId, cancellationToken).ConfigureAwait(false);
             }
 
             return new ChannelItemResult()
