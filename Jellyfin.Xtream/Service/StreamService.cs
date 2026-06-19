@@ -656,10 +656,13 @@ public partial class StreamService(IXtreamClient xtreamClient)
             }
         }
 
-        // Disable probing only when we have both language tracks AND a known
-        // runtime. Without RunTimeTicks, probing is needed so Jellyfin can
-        // discover the stream duration (required for progress/watched status).
+        // Always enable probing for VOD/Series so Jellyfin can discover the
+        // actual codecs in the remote stream. Without probing, the transcoding
+        // engine cannot build a proper FFmpeg command (no -c:v/-c:a flags),
+        // which causes "fatal error in HLS stream" on playback.
+        // For live streams, only skip probing when we have language tracks and duration.
         bool hasLanguageTracks = defaultAudioStreamIndex.HasValue && durationSecs.HasValue;
+        bool shouldProbe = isLive ? !hasLanguageTracks : true;
 
         return new MediaSourceInfo()
         {
@@ -678,7 +681,7 @@ public partial class StreamService(IXtreamClient xtreamClient)
             RequiresOpening = restream,
             SupportsDirectPlay = true,
             SupportsDirectStream = true,
-            SupportsProbing = !hasLanguageTracks,
+            SupportsProbing = shouldProbe,
         };
     }
 
