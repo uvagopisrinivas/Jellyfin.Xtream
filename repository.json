@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.22.0",
+        "changelog": "Fix subtitle search: descriptive filenames in stream URLs for Open Subtitles compatibility.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.22/Jellyfin.Xtream-v0.9.22.zip",
+        "checksum": "0eef9ee89eed141f36328dd30a1abbe5",
+        "timestamp": "2026-06-20T18:55:00Z"
+      },
+      {
         "version": "0.9.21.0",
         "changelog": "Fix HLS fatal error on VOD: always enable probing for non-live streams so Jellyfin discovers codecs and builds proper transcode commands.",
         "targetAbi": "10.11.0.0",
