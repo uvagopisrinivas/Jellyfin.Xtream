@@ -139,7 +139,7 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
                 name: stream.Name)
         ];
 
-        string? imageUrl = !string.IsNullOrWhiteSpace(stream.StreamIcon) ? stream.StreamIcon : null;
+        string? imageUrl = RewriteImageUrl(stream.StreamIcon);
 
         return new ChannelItemInfo()
         {
@@ -179,6 +179,28 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             Items = items,
             TotalRecordCount = items.Count
         };
+    }
+
+    /// <summary>
+    /// Rewrites image URLs from the Xtream API to use the configured BaseUrl.
+    /// Provider images hosted on the Xtream server use the path /images/{hash}.ext
+    /// but the host in the URL may be wrong. External CDN URLs are left unchanged.
+    /// </summary>
+    private static string? RewriteImageUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return null;
+        }
+
+        if (Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) &&
+            uri.AbsolutePath.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+        {
+            string baseUrl = Plugin.Instance.Configuration.BaseUrl.TrimEnd('/');
+            return $"{baseUrl}{uri.AbsolutePath}";
+        }
+
+        return url;
     }
 
     private async Task<ChannelItemResult> GetStreams(int categoryId, CancellationToken cancellationToken)
