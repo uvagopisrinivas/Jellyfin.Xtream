@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.22.0",
+        "changelog": "Fix VOD image crash: rewrite dead Xtream provider image URLs to use configured BaseUrl.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.22/Jellyfin.Xtream-v0.9.22.zip",
+        "checksum": "d5dd196b6ece8890c071ed8fff534107",
+        "timestamp": "2026-06-24T11:30:00Z"
+      },
+      {
         "version": "0.9.21.0",
         "changelog": "Fix HLS fatal error on VOD: always enable probing for non-live streams so Jellyfin discovers codecs and builds proper transcode commands.",
         "targetAbi": "10.11.0.0",
