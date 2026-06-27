@@ -656,13 +656,11 @@ public partial class StreamService(IXtreamClient xtreamClient)
             }
         }
 
-        // Always enable probing for VOD/Series so Jellyfin can discover the
-        // actual codecs in the remote stream. Without probing, the transcoding
-        // engine cannot build a proper FFmpeg command (no -c:v/-c:a flags),
-        // which causes "fatal error in HLS stream" on playback.
-        // For live streams, only skip probing when we have language tracks and duration.
+        // For live streams, skip probing when we have language tracks and duration.
+        // For VOD/Series, skip probing when we have video/audio streams populated from the API.
         bool hasLanguageTracks = defaultAudioStreamIndex.HasValue && durationSecs.HasValue;
-        bool shouldProbe = isLive ? !hasLanguageTracks : true;
+        bool hasMediaStreams = mediaStreams.Any(s => s.Type == MediaStreamType.Video || s.Type == MediaStreamType.Audio);
+        bool shouldProbe = isLive ? !hasLanguageTracks : !hasMediaStreams;
 
         return new MediaSourceInfo()
         {

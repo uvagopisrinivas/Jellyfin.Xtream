@@ -93,13 +93,30 @@ public class XtreamVodProvider(ILogger<VodChannel> logger, IProviderManager prov
         {
             logger.LogDebug("Getting metadata for movie {Id}", idStr);
             int id = int.Parse(idStr, CultureInfo.InvariantCulture);
-            VodStreamInfo vod = await xtreamClient.GetVodInfoAsync(Plugin.Instance.Creds, id, cancellationToken).ConfigureAwait(false);
+
+            VodStreamInfo vod;
+            try
+            {
+                vod = await xtreamClient.GetVodInfoAsync(Plugin.Instance.Creds, id, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "VOD stream {Id}: failed to fetch info", id);
+                return ItemUpdateType.None;
+            }
+
+            // Cache for VodChannel to use when building MediaSourceInfo
+            Plugin.Instance.VodInfoCache[id] = vod;
+
             VodInfo? i = vod.Info;
 
             if (i is null)
             {
+                logger.LogWarning("VOD stream {Id}: Info is null, skipping media stream population", id);
                 return ItemUpdateType.None;
             }
+
+            logger.LogInformation("Cached VOD info for stream {Id}: video={HasVideo}, audio={HasAudio}", id, i.Video != null, i.Audio != null);
 
             item.Overview ??= i.Plot;
             item.PremiereDate ??= i.ReleaseDate;

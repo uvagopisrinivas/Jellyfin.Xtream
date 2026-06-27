@@ -14,10 +14,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using Jellyfin.Xtream.Client;
+using Jellyfin.Xtream.Client.Models;
 using Jellyfin.Xtream.Configuration;
 using Jellyfin.Xtream.Service;
 using MediaBrowser.Common.Configuration;
@@ -101,6 +103,12 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     /// Gets the task service instance.
     /// </summary>
     public TaskService TaskService { get; init; }
+
+    /// <summary>
+    /// Gets the cache of VOD stream info populated during metadata refresh.
+    /// Used by VodChannel to build MediaSourceInfo with video/audio track details.
+    /// </summary>
+    public ConcurrentDictionary<int, VodStreamInfo> VodInfoCache { get; } = new();
 
     private static PluginPageInfo CreateStatic(string name) => new()
     {

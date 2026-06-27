@@ -126,16 +126,30 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             dateCreated = DateTimeOffset.FromUnixTimeSeconds(added).DateTime;
         }
 
-        // Build media source from the stream list data only.
-        // Detailed VOD info (duration, TMDB ID, audio/video codec details) is
-        // fetched later by XtreamVodProvider during metadata refresh, so we
-        // skip the per-item GetVodInfoAsync call here to keep browsing fast.
+        // Build media source, enriching with cached video/audio info from metadata refresh
+        // when available. Detailed VOD info (duration, TMDB ID, audio/video codec details) is
+        // fetched by XtreamVodProvider during scheduled metadata refresh.
+        VideoInfo? videoInfo = null;
+        AudioInfo? audioInfo = null;
+        int? durationSecs = null;
+
+        if (Plugin.Instance.VodInfoCache.TryGetValue(stream.StreamId, out VodStreamInfo? vodInfo)
+            && vodInfo.Info is VodInfo info)
+        {
+            videoInfo = info.Video;
+            audioInfo = info.Audio;
+            durationSecs = info.DurationSecs;
+        }
+
         List<MediaSourceInfo> sources =
         [
             Plugin.Instance.StreamService.GetMediaSourceInfo(
                 StreamType.Vod,
                 stream.StreamId,
                 stream.ContainerExtension,
+                durationSecs: durationSecs,
+                videoInfo: videoInfo,
+                audioInfo: audioInfo,
                 name: stream.Name)
         ];
 
