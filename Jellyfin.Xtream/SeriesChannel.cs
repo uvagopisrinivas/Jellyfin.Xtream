@@ -214,12 +214,15 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             }
         }
 
+        string? imageUrl = RewriteImageUrl(cover);
+        logger.LogInformation("Season image for seriesId={SeriesId}, seasonId={SeasonId}: cover={Cover}, imageUrl={ImageUrl}", seriesId, seasonId, cover, imageUrl);
+
         return new()
         {
             DateCreated = created,
             FolderType = ChannelFolderType.Container,
             Id = StreamService.ToGuid(StreamService.SeasonPrefix, serie.CategoryId, seriesId, seasonId).ToString(),
-            ImageUrl = RewriteImageUrl(cover),
+            ImageUrl = imageUrl,
             IndexNumber = seasonId,
             Name = name,
             Overview = overview,
@@ -265,7 +268,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
                 ContentType = ChannelMediaContentType.Episode,
                 DateCreated = episode.Added,
                 Id = StreamService.ToGuid(StreamService.EpisodePrefix, 0, 0, episode.EpisodeId).ToString(),
-                ImageUrl = RewriteImageUrl(episode.Info?.MovieImage),
+                ImageUrl = RewriteImageUrl(episode.Info?.MovieImage ?? series.Info.Cover),
                 IndexNumber = episode.EpisodeNum > 0 ? episode.EpisodeNum : null,
                 IsLiveStream = false,
                 MediaSources = sources,
