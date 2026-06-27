@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.23.0",
+        "changelog": "Add images to series seasons and episodes: wire up season cover and episode MovieImage to channel items.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.23/Jellyfin.Xtream-v0.9.23.zip",
+        "checksum": "4ec362cdfeb432a86ec978c745be3d27",
+        "timestamp": "2026-06-27T01:31:00Z"
+      },
+      {
         "version": "0.9.22.0",
         "changelog": "Fix VOD image crash: rewrite dead Xtream provider image URLs to use configured BaseUrl.",
         "targetAbi": "10.11.0.0",
