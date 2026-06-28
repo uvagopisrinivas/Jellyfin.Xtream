@@ -112,11 +112,9 @@ public class XtreamVodProvider(ILogger<VodChannel> logger, IProviderManager prov
 
             if (i is null)
             {
-                logger.LogWarning("VOD stream {Id}: Info is null, skipping media stream population", id);
+                logger.LogWarning("VOD stream {Id}: Info is null, skipping metadata population", id);
                 return ItemUpdateType.None;
             }
-
-            logger.LogInformation("Cached VOD info for stream {Id}: video={HasVideo}, audio={HasAudio}", id, i.Video != null, i.Audio != null);
 
             item.Overview ??= i.Plot;
             item.PremiereDate ??= i.ReleaseDate;

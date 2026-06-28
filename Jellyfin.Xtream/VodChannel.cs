@@ -34,7 +34,7 @@ namespace Jellyfin.Xtream;
 /// The Xtream Codes API channel.
 /// </summary>
 /// <param name="logger">Instance of the <see cref="ILogger"/> interface.</param>
-public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSourceDisplay
+public class VodChannel(ILogger<VodChannel> logger) : IChannel
 {
     /// <inheritdoc />
     public string? Name => "Xtream Video On-Demand";
@@ -116,7 +116,7 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
         }
     }
 
-    private static ChannelItemInfo CreateChannelItemInfo(StreamInfo stream)
+    private ChannelItemInfo CreateChannelItemInfo(StreamInfo stream)
     {
         ParsedName parsedName = StreamService.ParseName(stream.Name);
 
@@ -126,9 +126,8 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             dateCreated = DateTimeOffset.FromUnixTimeSeconds(added).DateTime;
         }
 
-        // Build media source, enriching with cached video/audio info from metadata refresh
-        // when available. Detailed VOD info (duration, TMDB ID, audio/video codec details) is
-        // fetched by XtreamVodProvider during scheduled metadata refresh.
+        // Build media source, enriching with cached video/audio info from metadata refresh.
+        // No probing needed — track details come from the Xtream API cache.
         VideoInfo? videoInfo = null;
         AudioInfo? audioInfo = null;
         int? durationSecs = null;
@@ -139,6 +138,20 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             videoInfo = info.Video;
             audioInfo = info.Audio;
             durationSecs = info.DurationSecs;
+            logger.LogInformation(
+                "VOD stream {StreamId} ({Name}): cache HIT — video={VideoCodec}, audio={AudioCodec}, duration={Duration}s",
+                stream.StreamId,
+                stream.Name,
+                videoInfo?.CodecName ?? "null",
+                audioInfo?.CodecName ?? "null",
+                durationSecs);
+        }
+        else
+        {
+            logger.LogInformation(
+                "VOD stream {StreamId} ({Name}): cache MISS — no video/audio info available",
+                stream.StreamId,
+                stream.Name);
         }
 
         List<MediaSourceInfo> sources =
@@ -152,6 +165,12 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
                 audioInfo: audioInfo,
                 name: stream.Name)
         ];
+
+        logger.LogInformation(
+            "VOD stream {StreamId}: MediaSourceInfo built — {StreamCount} media streams, SupportsProbing={SupportsProbing}",
+            stream.StreamId,
+            sources[0].MediaStreams.Count,
+            sources[0].SupportsProbing);
 
         string? imageUrl = RewriteImageUrl(stream.StreamIcon);
 

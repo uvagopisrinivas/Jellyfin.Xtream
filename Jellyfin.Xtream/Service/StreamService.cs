@@ -657,10 +657,10 @@ public partial class StreamService(IXtreamClient xtreamClient)
         }
 
         // For live streams, skip probing when we have language tracks and duration.
-        // For VOD/Series, skip probing when we have video/audio streams populated from the API.
+        // For VOD/Series, never probe — track info comes from Xtream API cache.
+        // Probing remote streams is slow/unreliable and causes playback delays.
         bool hasLanguageTracks = defaultAudioStreamIndex.HasValue && durationSecs.HasValue;
-        bool hasMediaStreams = mediaStreams.Any(s => s.Type == MediaStreamType.Video || s.Type == MediaStreamType.Audio);
-        bool shouldProbe = isLive ? !hasLanguageTracks : !hasMediaStreams;
+        bool shouldProbe = isLive ? !hasLanguageTracks : false;
 
         return new MediaSourceInfo()
         {
