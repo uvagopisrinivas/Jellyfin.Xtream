@@ -126,43 +126,14 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel
             dateCreated = DateTimeOffset.FromUnixTimeSeconds(added).DateTime;
         }
 
-        // Build media source, enriching with cached video/audio info from metadata refresh.
-        // No probing needed — track details come from the Xtream API cache.
-        VideoInfo? videoInfo = null;
-        AudioInfo? audioInfo = null;
-        int? durationSecs = null;
-
-        if (Plugin.Instance.VodInfoCache.TryGetValue(stream.StreamId, out VodStreamInfo? vodInfo)
-            && vodInfo.Info is VodInfo info)
-        {
-            videoInfo = info.Video;
-            audioInfo = info.Audio;
-            durationSecs = info.DurationSecs;
-            logger.LogInformation(
-                "VOD stream {StreamId} ({Name}): cache HIT — video={VideoCodec}, audio={AudioCodec}, duration={Duration}s",
-                stream.StreamId,
-                stream.Name,
-                videoInfo?.CodecName ?? "null",
-                audioInfo?.CodecName ?? "null",
-                durationSecs);
-        }
-        else
-        {
-            logger.LogInformation(
-                "VOD stream {StreamId} ({Name}): cache MISS — no video/audio info available",
-                stream.StreamId,
-                stream.Name);
-        }
-
+        // Build media source. Audio tracks are parsed from language tags in the stream name.
+        // Video codec info is discovered by Jellyfin via probing at play time.
         List<MediaSourceInfo> sources =
         [
             Plugin.Instance.StreamService.GetMediaSourceInfo(
                 StreamType.Vod,
                 stream.StreamId,
                 stream.ContainerExtension,
-                durationSecs: durationSecs,
-                videoInfo: videoInfo,
-                audioInfo: audioInfo,
                 name: stream.Name)
         ];
 

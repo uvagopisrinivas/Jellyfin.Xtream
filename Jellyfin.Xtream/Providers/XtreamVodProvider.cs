@@ -105,9 +105,6 @@ public class XtreamVodProvider(ILogger<VodChannel> logger, IProviderManager prov
                 return ItemUpdateType.None;
             }
 
-            // Cache for VodChannel to use when building MediaSourceInfo
-            Plugin.Instance.VodInfoCache[id] = vod;
-
             VodInfo? i = vod.Info;
 
             if (i is null)

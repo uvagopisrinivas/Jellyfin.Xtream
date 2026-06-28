@@ -571,6 +571,19 @@ public partial class StreamService(IXtreamClient xtreamClient)
                 Width = videoInfo.Width,
             });
         }
+        else if (!isLive)
+        {
+            // No video info from API — add a default h264 video stream so Jellyfin
+            // can attempt direct play without probing the remote stream.
+            // Most Xtream VOD content is h264. If it's actually hevc/h265, the client
+            // will fall back to transcoding automatically.
+            mediaStreams.Add(new()
+            {
+                Codec = "h264",
+                Index = 0,
+                Type = MediaStreamType.Video,
+            });
+        }
 
         if (!isLive && !string.IsNullOrWhiteSpace(name))
         {
@@ -657,8 +670,8 @@ public partial class StreamService(IXtreamClient xtreamClient)
         }
 
         // For live streams, skip probing when we have language tracks and duration.
-        // For VOD/Series, never probe — track info comes from Xtream API cache.
-        // Probing remote streams is slow/unreliable and causes playback delays.
+        // For VOD/Series, we provide a default video codec (h264) so Jellyfin can
+        // attempt direct play without probing the remote stream.
         bool hasLanguageTracks = defaultAudioStreamIndex.HasValue && durationSecs.HasValue;
         bool shouldProbe = isLive ? !hasLanguageTracks : false;
 
