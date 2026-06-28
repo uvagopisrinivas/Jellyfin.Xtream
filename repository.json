@@ -8,30 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.27.0",
-        "changelog": "VOD: default h264 video stream for direct play without probing, remove cache, audio from language parser.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.27/Jellyfin.Xtream-v0.9.27.zip",
-        "checksum": "3de27730b8c5a76ecbdddad5f77f4d22",
-        "timestamp": "2026-06-28T01:18:00Z"
-      },
-      {
-        "version": "0.9.26.0",
-        "changelog": "VOD media streams: show track info on detail page, disable probing, use cached video/audio from metadata refresh.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.26/Jellyfin.Xtream-v0.9.26.zip",
-        "checksum": "f78b9bfe691bfd3600121d659a9bffad",
-        "timestamp": "2026-06-28T01:01:00Z"
-      },
-      {
-        "version": "0.9.25.0",
-        "changelog": "VOD media streams: populate video/audio track info from cached metadata refresh data, disable FFprobe probing when track info is available.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.25/Jellyfin.Xtream-v0.9.25.zip",
-        "checksum": "ba6693cc5ec6917511edb3fae141a004",
-        "timestamp": "2026-06-28T00:28:00Z"
-      },
-      {
         "version": "0.9.24.0",
         "changelog": "Debug season/episode images: add logging for cover URLs, fallback episode image to series cover when MovieImage is empty.",
         "targetAbi": "10.11.0.0",
