@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.28.0",
+        "changelog": "VOD play-time metadata fetch: fetch codec/duration info via get_vod_info when user clicks play, eliminating the slow 1GB probe and fixing laggy seeking/playback errors.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.28/Jellyfin.Xtream-v0.9.28.zip",
+        "checksum": "97e7e70309783762bd9f9bbf5c0770eb",
+        "timestamp": "2026-08-10T23:50:00Z"
+      },
+      {
         "version": "0.9.24.0",
         "changelog": "Debug season/episode images: add logging for cover URLs, fallback episode image to series cover when MovieImage is empty.",
         "targetAbi": "10.11.0.0",
