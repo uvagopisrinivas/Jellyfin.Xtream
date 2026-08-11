@@ -45,6 +45,8 @@ public partial class StreamService(IXtreamClient xtreamClient)
 
     private readonly ConcurrentDictionary<int, (SeriesStreamInfo Data, DateTime FetchedAt)> _seriesCache = new();
 
+    private readonly ConcurrentDictionary<int, (VodStreamInfo Data, DateTime FetchedAt)> _vodCache = new();
+
     /// <summary>
     /// The id prefix for VOD category channel items.
     /// </summary>
@@ -365,6 +367,35 @@ public partial class StreamService(IXtreamClient xtreamClient)
         }
 
         return series;
+    }
+
+    /// <summary>
+    /// Gets the VOD stream info for a single movie, using a short-lived cache
+    /// to avoid redundant API calls when the same movie is played or resumed.
+    /// </summary>
+    /// <param name="streamId">The Xtream id of the VOD stream.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The <see cref="VodStreamInfo"/> for the movie.</returns>
+    public async Task<VodStreamInfo> GetCachedVodInfoAsync(int streamId, CancellationToken cancellationToken)
+    {
+        if (_vodCache.TryGetValue(streamId, out var cached) && DateTime.UtcNow - cached.FetchedAt < SeriesCacheDuration)
+        {
+            return cached.Data;
+        }
+
+        VodStreamInfo vod = await xtreamClient.GetVodInfoAsync(Plugin.Instance.Creds, streamId, cancellationToken).ConfigureAwait(false);
+        _vodCache[streamId] = (vod, DateTime.UtcNow);
+
+        // Evict stale entries to prevent unbounded growth
+        foreach (var key in _vodCache.Keys)
+        {
+            if (_vodCache.TryGetValue(key, out var entry) && DateTime.UtcNow - entry.FetchedAt >= SeriesCacheDuration)
+            {
+                _vodCache.TryRemove(key, out _);
+            }
+        }
+
+        return vod;
     }
 
     /// <summary>

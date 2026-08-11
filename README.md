@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.24"
+VERSION="0.9.28"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -376,6 +376,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.28** - VOD play-time metadata fetch: fetch codec/duration info via get_vod_info when user clicks play, eliminating the slow 1GB probe and fixing laggy seeking/playback errors.
 - **v0.9.24** - Debug season/episode images: add logging for cover URLs, fallback episode image to series cover when MovieImage is empty.
 - **v0.9.23** - Add images to series seasons and episodes: wire up season cover and episode MovieImage to channel items.
 - **v0.9.22** - Fix VOD image crash: rewrite dead Xtream provider image URLs (starshare.live, webhop.live) to use configured BaseUrl. Prevents "Unable to convert any images to local" crashes on large categories.

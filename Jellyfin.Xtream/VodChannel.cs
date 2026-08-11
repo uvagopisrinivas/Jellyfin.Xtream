@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Xtream.Client.Models;
@@ -34,7 +35,7 @@ namespace Jellyfin.Xtream;
 /// The Xtream Codes API channel.
 /// </summary>
 /// <param name="logger">Instance of the <see cref="ILogger"/> interface.</param>
-public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSourceDisplay
+public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSourceDisplay, IRequiresMediaInfoCallback
 {
     /// <inheritdoc />
     public string? Name => "Xtream Video On-Demand";
@@ -225,6 +226,61 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
             Items = items,
             TotalRecordCount = items.Count
         };
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<MediaSourceInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
+    {
+        // The id is formatted as "{StreamPrefix}{streamId}" from CreateChannelItemInfo.
+        string prefix = StreamService.StreamPrefix.ToString(CultureInfo.InvariantCulture);
+        string streamIdStr = id.StartsWith(prefix, StringComparison.Ordinal)
+            ? id[prefix.Length..]
+            : id;
+
+        if (!int.TryParse(streamIdStr, CultureInfo.InvariantCulture, out int streamId))
+        {
+            logger.LogWarning("Unable to parse VOD stream id from channel item id: {Id}", id);
+            return Enumerable.Empty<MediaSourceInfo>();
+        }
+
+        // Fetch detailed VOD info (duration, codecs) at play time
+        int? durationSecs = null;
+        VideoInfo? videoInfo = null;
+        AudioInfo? audioInfo = null;
+        string? extension = null;
+        string? name = null;
+
+        try
+        {
+            VodStreamInfo vodInfo = await Plugin.Instance.StreamService.GetCachedVodInfoAsync(streamId, cancellationToken).ConfigureAwait(false);
+            if (vodInfo.Info != null)
+            {
+                durationSecs = vodInfo.Info.DurationSecs;
+                videoInfo = vodInfo.Info.Video;
+                audioInfo = vodInfo.Info.Audio;
+            }
+
+            if (vodInfo.MovieData != null)
+            {
+                extension = vodInfo.MovieData.ContainerExtension;
+                name = vodInfo.MovieData.Name;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to fetch VOD info for stream {StreamId}, falling back to basic media source", streamId);
+        }
+
+        var mediaSource = Plugin.Instance.StreamService.GetMediaSourceInfo(
+            StreamType.Vod,
+            streamId,
+            extension,
+            durationSecs: durationSecs,
+            videoInfo: videoInfo,
+            audioInfo: audioInfo,
+            name: name);
+
+        return new[] { mediaSource };
     }
 
     /// <inheritdoc />
