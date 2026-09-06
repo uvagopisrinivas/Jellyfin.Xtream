@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.31.0",
+        "changelog": "Live TV stall detection: adds 7s open and read timeouts to the restream so a silent or hung provider connection is detected and reconnected instead of freezing playback.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
+        "checksum": "b45a92eba7576948213ca8f83e4fbcbc",
+        "timestamp": "2026-09-06T20:00:00Z"
+      },
+      {
         "version": "0.9.30.0",
         "changelog": "Live TV reconnect progressive backoff: avoids hammering the provider when the source drops repeatedly (e.g. connection-limit contention with multiple viewers).",
         "targetAbi": "10.11.0.0",
