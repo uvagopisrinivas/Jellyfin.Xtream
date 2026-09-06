@@ -52,9 +52,11 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
     private readonly CancellationTokenSource _tokenSource;
     private readonly string _url;
 
+    private readonly Lock _pumpLock = new();
+
     private Task? _copyTask;
     private Stream? _inputStream;
-    private bool _closed;
+    private volatile bool _closed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Restream"/> class.
@@ -103,23 +105,45 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
     /// <inheritdoc />
     public async Task Open(CancellationToken openCancellationToken)
     {
-        if (_copyTask != null)
-        {
-            _logger.LogWarning("Restream for channel {ChannelId} is already open.", MediaSource.Id);
-            return;
-        }
-
         string channelId = MediaSource.Id;
         _logger.LogInformation("Starting restream for channel {ChannelId}.", channelId);
 
-        // Open the first source connection before returning so the buffer starts filling.
-        await OpenSourceStream(openCancellationToken).ConfigureAwait(true);
+        // Try to open the first source connection before returning so the buffer
+        // starts filling immediately. If this fails (provider briefly down), don't
+        // abort — the pump loop will keep retrying with backoff.
+        try
+        {
+            await OpenSourceStream(openCancellationToken).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Initial source open for channel {ChannelId} failed; pump loop will retry.", channelId);
+        }
 
         // Continuously pump the source into the buffer, reconnecting automatically
         // when the provider closes the connection (common for IPTV feeds that
         // terminate long-lived HTTP connections). This keeps live playback going
         // without the client seeing the stream end.
-        _copyTask = Task.Run(() => PumpLoopAsync(_tokenSource.Token), CancellationToken.None);
+        EnsurePumpRunning();
+    }
+
+    /// <summary>
+    /// Starts the pump loop if it is not already running. Safe to call concurrently.
+    /// </summary>
+    private void EnsurePumpRunning()
+    {
+        lock (_pumpLock)
+        {
+            if (_closed)
+            {
+                return;
+            }
+
+            if (_copyTask == null || _copyTask.IsCompleted)
+            {
+                _copyTask = Task.Run(() => PumpLoopAsync(_tokenSource.Token), CancellationToken.None);
+            }
+        }
     }
 
     private async Task OpenSourceStream(CancellationToken cancellationToken)
@@ -130,7 +154,7 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
         // (accepts the socket but never sends headers/data) doesn't stall the
         // pump loop forever.
         using var openTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        openTimeout.CancelAfter(TimeSpan.FromSeconds(7));
+        openTimeout.CancelAfter(TimeSpan.FromSeconds(15));
 
         // Response stream is disposed manually.
         HttpResponseMessage response = await _httpClientFactory.CreateClient(NamedClient.Default)
@@ -237,6 +261,16 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
                 break;
             }
 
+            // Stop reconnecting if nobody is watching anymore. Without this, a restream
+            // whose consumers all left keeps reconnecting to the provider forever,
+            // consuming a provider connection slot (a "zombie" stream) and blocking
+            // other channels when the provider has a connection limit.
+            if (ConsumerCount <= 0)
+            {
+                _logger.LogInformation("Restream for channel {ChannelId} has no consumers; stopping pump loop.", channelId);
+                break;
+            }
+
             // Track short-lived connections. If the source keeps dying within a few
             // seconds, the provider is likely rejecting us (connection limit reached
             // by another viewer/device). Back off progressively instead of hammering.
@@ -287,11 +321,10 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
     /// <inheritdoc />
     public Stream GetStream()
     {
-        if (_copyTask == null)
-        {
-            _logger.LogWarning("Restream for channel {ChannelId} was not opened.", MediaSource.Id);
-            _ = Open(CancellationToken.None);
-        }
+        // (Re)start the pump loop if it was never started or if it previously
+        // exited (e.g. because all consumers had left). Guarded so concurrent
+        // consumers can't spawn multiple pump loops.
+        EnsurePumpRunning();
 
         _logger.LogInformation("Opening restream {Count} for channel {ChannelId}.", ConsumerCount, MediaSource.Id);
         return new WrappedBufferReadStream(_buffer);
@@ -305,6 +338,21 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
     {
         if (disposing)
         {
+            // Signal the pump loop to stop and cancel any in-flight source read
+            // before disposing shared resources it may still be using.
+            _closed = true;
+            if (!_tokenSource.IsCancellationRequested)
+            {
+                try
+                {
+                    _tokenSource.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Already disposed; nothing to cancel.
+                }
+            }
+
             _inputStream?.Dispose();
             _buffer.Dispose();
             _tokenSource.Dispose();

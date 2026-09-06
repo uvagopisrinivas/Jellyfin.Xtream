@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.31"
+VERSION="0.9.32"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -376,6 +376,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.32** - Live TV zombie-stream fix: stop reconnecting when all viewers have left (prevents a phantom stream from consuming a provider connection slot and blocking other channels). Adds concurrency guard against duplicate pump loops, tolerates initial source-open failure, and safer disposal. Open timeout 15s, stall timeout 7s.
 - **v0.9.31** - Live TV stall detection: add open + read timeouts to the restream so a silent/hung provider connection (socket stays open but stops sending data) is detected and reconnected instead of freezing playback.
 - **v0.9.30** - Live TV reconnect backoff: add progressive backoff to the restream reconnect loop to avoid hammering the provider when the source drops repeatedly (e.g. connection-limit contention with multiple viewers).
 - **v0.9.29** - Live TV auto-reconnect: restream now automatically reconnects when the provider closes the source connection (common for IPTV feeds that drop long-lived HTTP connections), fixing live channels stopping every 60-90 seconds.
