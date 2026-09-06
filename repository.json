@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.31.0",
+        "changelog": "Live TV seamless reconnect for token-based providers: continuously reconnects to the original URL (fresh token) feeding a 32MB circular buffer so FFmpeg sees one uninterrupted infinite stream. Health-based backoff prevents tight loops; graceful reader catch-up; stops on no consumers; bounded shutdown.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
+        "checksum": "0809c9e5b78d8017820ef3daf35c3868",
+        "timestamp": "2026-09-06T22:00:00Z"
+      },
+      {
         "version": "0.9.30.0",
         "changelog": "Revert live TV restream to original behavior (no reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. Live TV multi-channel issues were traced to the provider connection limit, not the plugin.",
         "targetAbi": "10.11.0.0",
