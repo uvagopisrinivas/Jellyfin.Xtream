@@ -54,7 +54,6 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
 
     private Task? _copyTask;
     private Stream? _inputStream;
-    private bool _closed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Restream"/> class.
@@ -103,7 +102,7 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
     /// <inheritdoc />
     public async Task Open(CancellationToken openCancellationToken)
     {
-        if (_copyTask != null)
+        if (_inputStream != null)
         {
             _logger.LogWarning("Restream for channel {ChannelId} is already open.", MediaSource.Id);
             return;
@@ -112,23 +111,9 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
         string channelId = MediaSource.Id;
         _logger.LogInformation("Starting restream for channel {ChannelId}.", channelId);
 
-        // Open the first source connection before returning so the buffer starts filling.
-        await OpenSourceStream(openCancellationToken).ConfigureAwait(true);
-
-        // Continuously pump the source into the buffer, reconnecting automatically
-        // when the provider closes the connection (common for IPTV feeds that
-        // terminate long-lived HTTP connections). This keeps live playback going
-        // without the client seeing the stream end.
-        _copyTask = Task.Run(() => PumpLoopAsync(_tokenSource.Token), CancellationToken.None);
-    }
-
-    private async Task OpenSourceStream(CancellationToken cancellationToken)
-    {
-        string channelId = MediaSource.Id;
-
         // Response stream is disposed manually.
         HttpResponseMessage response = await _httpClientFactory.CreateClient(NamedClient.Default)
-            .GetAsync(_url, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .GetAsync(_url, HttpCompletionOption.ResponseHeadersRead, openCancellationToken)
             .ConfigureAwait(true);
         _logger.LogDebug("Stream for channel {ChannelId} using url {Url}", channelId, _url);
 
@@ -137,90 +122,40 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
         {
             _logger.LogDebug("Stream for channel {ChannelId} redirected to url {Url}", channelId, response.Headers.Location);
             response = await _httpClientFactory.CreateClient(NamedClient.Default)
-                .GetAsync(response.Headers.Location, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .GetAsync(response.Headers.Location, HttpCompletionOption.ResponseHeadersRead, openCancellationToken)
                 .ConfigureAwait(true);
         }
 
-        _inputStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    private async Task PumpLoopAsync(CancellationToken cancellationToken)
-    {
-        string channelId = MediaSource.Id;
-        int consecutiveFailures = 0;
-
-        while (!cancellationToken.IsCancellationRequested && !_closed)
-        {
-            try
-            {
-                if (_inputStream == null)
+        _inputStream = await response.Content.ReadAsStreamAsync(CancellationToken.None).ConfigureAwait(false);
+        _copyTask = _inputStream.CopyToAsync(_buffer, _tokenSource.Token)
+            .ContinueWith(
+                (Task t) =>
                 {
-                    await OpenSourceStream(cancellationToken).ConfigureAwait(false);
-                }
-
-                // Copy until the source connection ends.
-                await _inputStream!.CopyToAsync(_buffer, cancellationToken).ConfigureAwait(false);
-
-                // Source ended cleanly (provider closed connection). Reconnect.
-                consecutiveFailures = 0;
-                _logger.LogInformation("Restream source for channel {ChannelId} ended; reconnecting.", channelId);
-            }
-            catch (OperationCanceledException)
-            {
-                // Restream is being closed intentionally.
-                break;
-            }
-            catch (Exception ex)
-            {
-                consecutiveFailures++;
-                _logger.LogWarning(ex, "Restream source for channel {ChannelId} errored (attempt {Attempt}); reconnecting.", channelId, consecutiveFailures);
-
-                // Give up after too many consecutive failures to avoid hammering the provider.
-                if (consecutiveFailures > 5)
-                {
-                    _logger.LogError("Restream for channel {ChannelId} failed {Count} times consecutively; stopping.", channelId, consecutiveFailures);
-                    break;
-                }
-            }
-            finally
-            {
-                _inputStream?.Close();
-                _inputStream = null;
-            }
-
-            if (!cancellationToken.IsCancellationRequested && !_closed)
-            {
-                // Small delay before reconnecting so we don't spin if the provider
-                // is briefly unavailable.
-                try
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-            }
-        }
-
-        _logger.LogInformation("Restream pump loop for channel {ChannelId} exited.", channelId);
+                    _logger.LogInformation("Restream for channel {ChannelId} finished with state {Status}", MediaSource.Id, t.Status);
+                    _inputStream.Close();
+                    _inputStream = null;
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.None,
+                TaskScheduler.Default);
     }
 
     /// <inheritdoc />
     public async Task Close()
     {
-        _closed = true;
-        await _tokenSource.CancelAsync().ConfigureAwait(false);
-        if (_copyTask != null)
+        if (_copyTask == null)
         {
-            await _copyTask.ConfigureAwait(false);
+            throw new ArgumentNullException("copyTask");
         }
+
+        await _tokenSource.CancelAsync().ConfigureAwait(false);
+        await _copyTask.ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public Stream GetStream()
     {
-        if (_copyTask == null)
+        if (_inputStream == null)
         {
             _logger.LogWarning("Restream for channel {ChannelId} was not opened.", MediaSource.Id);
             _ = Open(CancellationToken.None);

@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.29"
+VERSION="0.9.30"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -376,6 +376,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.30** - Revert live TV restream to original behavior (no auto-reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. The reconnect experiments were removed as the underlying live TV issues were traced to the provider's connection limit rather than the plugin.
 - **v0.9.29** - Live TV auto-reconnect: restream now automatically reconnects when the provider closes the source connection (common for IPTV feeds that drop long-lived HTTP connections), fixing live channels stopping every 60-90 seconds.
 - **v0.9.28** - VOD play-time metadata fetch: fetch codec/duration info via get_vod_info when user clicks play, eliminating the slow 1GB probe and fixing laggy seeking/playback errors.
 - **v0.9.24** - Debug season/episode images: add logging for cover URLs, fallback episode image to series cover when MovieImage is empty.
