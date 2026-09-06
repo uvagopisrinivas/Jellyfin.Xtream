@@ -147,10 +147,18 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
     private async Task PumpLoopAsync(CancellationToken cancellationToken)
     {
         string channelId = MediaSource.Id;
-        int consecutiveFailures = 0;
+
+        // Threshold below which a connection is considered "too short" — indicates
+        // the provider is dropping us immediately (e.g. connection-limit contention),
+        // not a normal periodic keepalive drop.
+        TimeSpan shortConnectionThreshold = TimeSpan.FromSeconds(10);
+        int shortConnections = 0;
 
         while (!cancellationToken.IsCancellationRequested && !_closed)
         {
+            DateTime connectionStart = DateTime.UtcNow;
+            bool errored = false;
+
             try
             {
                 if (_inputStream == null)
@@ -161,8 +169,6 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
                 // Copy until the source connection ends.
                 await _inputStream!.CopyToAsync(_buffer, cancellationToken).ConfigureAwait(false);
 
-                // Source ended cleanly (provider closed connection). Reconnect.
-                consecutiveFailures = 0;
                 _logger.LogInformation("Restream source for channel {ChannelId} ended; reconnecting.", channelId);
             }
             catch (OperationCanceledException)
@@ -172,15 +178,8 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
             }
             catch (Exception ex)
             {
-                consecutiveFailures++;
-                _logger.LogWarning(ex, "Restream source for channel {ChannelId} errored (attempt {Attempt}); reconnecting.", channelId, consecutiveFailures);
-
-                // Give up after too many consecutive failures to avoid hammering the provider.
-                if (consecutiveFailures > 5)
-                {
-                    _logger.LogError("Restream for channel {ChannelId} failed {Count} times consecutively; stopping.", channelId, consecutiveFailures);
-                    break;
-                }
+                errored = true;
+                _logger.LogWarning(ex, "Restream source for channel {ChannelId} errored; reconnecting.", channelId);
             }
             finally
             {
@@ -188,18 +187,41 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
                 _inputStream = null;
             }
 
-            if (!cancellationToken.IsCancellationRequested && !_closed)
+            if (cancellationToken.IsCancellationRequested || _closed)
             {
-                // Small delay before reconnecting so we don't spin if the provider
-                // is briefly unavailable.
-                try
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
+                break;
+            }
+
+            // Track short-lived connections. If the source keeps dying within a few
+            // seconds, the provider is likely rejecting us (connection limit reached
+            // by another viewer/device). Back off progressively instead of hammering.
+            TimeSpan connectionDuration = DateTime.UtcNow - connectionStart;
+            if (errored || connectionDuration < shortConnectionThreshold)
+            {
+                shortConnections++;
+            }
+            else
+            {
+                shortConnections = 0;
+            }
+
+            // Progressive backoff: normal drop = quick reconnect; repeated short
+            // connections = longer waits, capped at 5 seconds.
+            int delayMs = shortConnections switch
+            {
+                0 or 1 => 250,
+                2 or 3 => 1000,
+                4 or 5 => 2500,
+                _ => 5000,
+            };
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(delayMs), cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
             }
         }
 
