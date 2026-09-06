@@ -126,9 +126,15 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
     {
         string channelId = MediaSource.Id;
 
+        // Apply a timeout to opening the source so a hung provider connection
+        // (accepts the socket but never sends headers/data) doesn't stall the
+        // pump loop forever.
+        using var openTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        openTimeout.CancelAfter(TimeSpan.FromSeconds(7));
+
         // Response stream is disposed manually.
         HttpResponseMessage response = await _httpClientFactory.CreateClient(NamedClient.Default)
-            .GetAsync(_url, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .GetAsync(_url, HttpCompletionOption.ResponseHeadersRead, openTimeout.Token)
             .ConfigureAwait(true);
         _logger.LogDebug("Stream for channel {ChannelId} using url {Url}", channelId, _url);
 
@@ -137,11 +143,50 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
         {
             _logger.LogDebug("Stream for channel {ChannelId} redirected to url {Url}", channelId, response.Headers.Location);
             response = await _httpClientFactory.CreateClient(NamedClient.Default)
-                .GetAsync(response.Headers.Location, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .GetAsync(response.Headers.Location, HttpCompletionOption.ResponseHeadersRead, openTimeout.Token)
                 .ConfigureAwait(true);
         }
 
-        _inputStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        _inputStream = await response.Content.ReadAsStreamAsync(openTimeout.Token).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Copies from the source stream to the buffer, aborting if no data arrives
+    /// within the stall timeout. This detects "silent" connections that stay open
+    /// but stop delivering data, which would otherwise freeze playback.
+    /// </summary>
+    private async Task CopyWithStallDetectionAsync(CancellationToken cancellationToken)
+    {
+        const int bufferSize = 81920;
+        TimeSpan stallTimeout = TimeSpan.FromSeconds(7);
+        byte[] buffer = new byte[bufferSize];
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            using var readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            readTimeout.CancelAfter(stallTimeout);
+
+            int read;
+            try
+            {
+                read = await _inputStream!.ReadAsync(buffer.AsMemory(0, bufferSize), readTimeout.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Stall timeout fired: source stopped sending data. Treat as end-of-stream
+                // so the pump loop reconnects.
+                _logger.LogWarning("Restream source for channel {ChannelId} stalled (no data for {Seconds}s).", MediaSource.Id, stallTimeout.TotalSeconds);
+                return;
+            }
+
+            if (read == 0)
+            {
+                // Normal end of stream.
+                return;
+            }
+
+            await _buffer.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private async Task PumpLoopAsync(CancellationToken cancellationToken)
@@ -166,8 +211,8 @@ public class Restream : ILiveStream, IDirectStreamProvider, IDisposable
                     await OpenSourceStream(cancellationToken).ConfigureAwait(false);
                 }
 
-                // Copy until the source connection ends.
-                await _inputStream!.CopyToAsync(_buffer, cancellationToken).ConfigureAwait(false);
+                // Copy until the source connection ends or stalls.
+                await CopyWithStallDetectionAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Restream source for channel {ChannelId} ended; reconnecting.", channelId);
             }
