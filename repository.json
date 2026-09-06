@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.30.0",
+        "changelog": "Revert live TV restream to original behavior (no reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. Live TV multi-channel issues were traced to the provider connection limit, not the plugin.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.30/Jellyfin.Xtream-v0.9.30.zip",
+        "checksum": "30bd1ad42ee308830473334d87961cbe",
+        "timestamp": "2026-09-06T21:00:00Z"
+      },
+      {
         "version": "0.9.29.0",
         "changelog": "Live TV auto-reconnect: restream now automatically reconnects when the provider closes the source connection, fixing live channels stopping every 60-90 seconds.",
         "targetAbi": "10.11.0.0",
