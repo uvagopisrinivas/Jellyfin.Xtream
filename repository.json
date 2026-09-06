@@ -8,30 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.32.0",
-        "changelog": "Live TV zombie-stream fix: stop reconnecting when all viewers leave so a phantom stream no longer consumes a provider connection slot and blocks other channels. Adds concurrency guard, tolerates initial source-open failure, safer disposal.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.32/Jellyfin.Xtream-v0.9.32.zip",
-        "checksum": "fcd80c90f4d526af176a72849cee3b5b",
-        "timestamp": "2026-09-06T20:30:00Z"
-      },
-      {
-        "version": "0.9.31.0",
-        "changelog": "Live TV stall detection: adds 7s open and read timeouts to the restream so a silent or hung provider connection is detected and reconnected instead of freezing playback.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
-        "checksum": "b45a92eba7576948213ca8f83e4fbcbc",
-        "timestamp": "2026-09-06T20:00:00Z"
-      },
-      {
-        "version": "0.9.30.0",
-        "changelog": "Live TV reconnect progressive backoff: avoids hammering the provider when the source drops repeatedly (e.g. connection-limit contention with multiple viewers).",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.30/Jellyfin.Xtream-v0.9.30.zip",
-        "checksum": "2225a6450e1f8207e42bf2b4336c5820",
-        "timestamp": "2026-09-06T18:35:00Z"
-      },
-      {
         "version": "0.9.29.0",
         "changelog": "Live TV auto-reconnect: restream now automatically reconnects when the provider closes the source connection, fixing live channels stopping every 60-90 seconds.",
         "targetAbi": "10.11.0.0",
