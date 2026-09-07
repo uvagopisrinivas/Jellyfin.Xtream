@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.34.0",
+        "changelog": "Reliable same-channel multi-device sharing: multiple devices watching the same live channel now share one provider connection via reference-counted consumers, and the reader no longer spins after a consumer leaves. Adds duplicate-prefix suppression so re-sent leading data on reconnect (from provider connection-limit throttling) is skipped instead of replayed, preventing the audio loop. Two DIFFERENT channels at once still requires a provider plan with 2+ concurrent connections.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.34/Jellyfin.Xtream-v0.9.34.zip",
+        "checksum": "64e9e80e9a252abd9314cec179d44c34",
+        "timestamp": "2026-08-10T11:00:00Z"
+      },
+      {
         "version": "0.9.33.0",
         "changelog": "Fix live TV permanent freeze on a stalled provider connection. The restream pump had no timeout, so if the provider accepted a connection but stopped sending data (socket open, no body), the read blocked forever and playback froze. The pump now bounds connection-open to 15s and each read to a 7s stall timeout, abandoning and reconnecting a stalled connection via the existing health/backoff path.",
         "targetAbi": "10.11.0.0",
