@@ -8,38 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.34.0",
-        "changelog": "Reliable same-channel multi-device sharing: multiple devices watching the same live channel now share one provider connection via reference-counted consumers, and the reader no longer spins after a consumer leaves. Adds duplicate-prefix suppression so re-sent leading data on reconnect (from provider connection-limit throttling) is skipped instead of replayed, preventing the audio loop. Two DIFFERENT channels at once still requires a provider plan with 2+ concurrent connections.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.34/Jellyfin.Xtream-v0.9.34.zip",
-        "checksum": "64e9e80e9a252abd9314cec179d44c34",
-        "timestamp": "2026-08-10T11:00:00Z"
-      },
-      {
-        "version": "0.9.33.0",
-        "changelog": "Fix live TV permanent freeze on a stalled provider connection. The restream pump had no timeout, so if the provider accepted a connection but stopped sending data (socket open, no body), the read blocked forever and playback froze. The pump now bounds connection-open to 15s and each read to a 7s stall timeout, abandoning and reconnecting a stalled connection via the existing health/backoff path.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.33/Jellyfin.Xtream-v0.9.33.zip",
-        "checksum": "d18db4f71032644b727cfb65f085e36f",
-        "timestamp": "2026-08-10T09:20:00Z"
-      },
-      {
-        "version": "0.9.32.0",
-        "changelog": "Fix live TV audio/video sync drift. Seamless reconnect splices short-lived provider token sessions, producing discontinuous source timestamps at each splice. Live streams now set GenPtsInput and IgnoreDts so FFmpeg regenerates presentation timestamps and ignores broken decode timestamps (-fflags +genpts+igndts) instead of copying them (-copyts), keeping A/V aligned across reconnects. Live-only; VOD/Series unaffected.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.32/Jellyfin.Xtream-v0.9.32.zip",
-        "checksum": "f9ba781011b41f545b8075b8abedef6e",
-        "timestamp": "2026-08-10T08:35:00Z"
-      },
-      {
-        "version": "0.9.31.0",
-        "changelog": "Live TV seamless reconnect for token-based providers: continuously reconnects to the original URL (fresh token) feeding a 32MB circular buffer so FFmpeg sees one uninterrupted infinite stream. Health-based backoff prevents tight loops; graceful reader catch-up; stops on no consumers; bounded shutdown.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
-        "checksum": "0809c9e5b78d8017820ef3daf35c3868",
-        "timestamp": "2026-09-06T22:00:00Z"
-      },
-      {
         "version": "0.9.30.0",
         "changelog": "Revert live TV restream to original behavior (no reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. Live TV multi-channel issues were traced to the provider connection limit, not the plugin.",
         "targetAbi": "10.11.0.0",
