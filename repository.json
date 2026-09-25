@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.31.0",
+        "changelog": "Subtitle search matches the real movie: resolve and set the IMDb id on VOD movies (looked up from TMDB) so the OpenSubtitles provider searches by IMDb id instead of falling back to the numeric Xtream stream-id filename (e.g. 24882.mkv). Refresh VOD library metadata after updating.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
+        "checksum": "a9c776b22d5be72deab48b3a282e28f8",
+        "timestamp": "2026-09-25T00:00:00Z"
+      },
+      {
         "version": "0.9.30.0",
         "changelog": "Revert live TV restream to original behavior (no reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. Live TV multi-channel issues were traced to the provider connection limit, not the plugin.",
         "targetAbi": "10.11.0.0",
