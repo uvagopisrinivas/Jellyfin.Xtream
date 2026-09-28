@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.31.0",
+        "changelog": "Fix VOD/Series playback on Jellyfin 12.x (Playback Error and empty MediaInfo URL). MediaStream.Index values are now contiguous 0-based positions matching the MediaStreams list, and DefaultAudioStreamIndex always resolves to a valid audio track. Jellyfin 12.x indexes into the stream list using these values, so the previous raw Xtream ffprobe indices caused an ArgumentOutOfRangeException in GetPlaybackMediaSources. Live TV was unaffected.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
+        "checksum": "dc2125a7729b50a56995e32ddab0b326",
+        "timestamp": "2026-09-28T19:17:27Z"
+      },
+      {
         "version": "0.9.30.0",
         "changelog": "Revert live TV restream to original behavior (no reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. Live TV multi-channel issues were traced to the provider connection limit, not the plugin.",
         "targetAbi": "10.11.0.0",
