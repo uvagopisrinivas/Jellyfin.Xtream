@@ -8,14 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.31.0",
-        "changelog": "Fix VOD MKV stutter/unnecessary transcode: derive IsInterlaced from the Xtream field_order field (defaults to progressive) instead of hardcoding true, so progressive movies remux/direct-stream instead of being force-transcoded via a deinterlace filter.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
-        "checksum": "b4c54fa69d51ac8d5e83ce56460fd3ce",
-        "timestamp": "2026-09-30T14:07:46Z"
-      },
-      {
         "version": "0.9.30.0",
         "changelog": "Revert live TV restream to original behavior (no reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. Live TV multi-channel issues were traced to the provider connection limit, not the plugin.",
         "targetAbi": "10.11.0.0",
