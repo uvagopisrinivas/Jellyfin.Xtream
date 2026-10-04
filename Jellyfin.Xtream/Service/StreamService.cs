@@ -695,9 +695,21 @@ public partial class StreamService(IXtreamClient xtreamClient)
         bool hasLanguageTracks = defaultAudioStreamIndex.HasValue && durationSecs.HasValue;
         bool shouldProbe = isLive ? !hasLanguageTracks : true;
 
+        // When the Xtream provider returns no codec info (video/audio arrays are
+        // empty, common for many MKV VOD entries), MediaStreams is empty. Advertising
+        // such a source as direct-play/stream-capable traps Jellyfin into emitting a
+        // degenerate FFmpeg command with no -map/-c:v/-c:a flags, which falls back to
+        // CPU software decode+encode (libx265) and stutters on 4K HEVC.
+        //
+        // With no stream info we instead force Jellyfin to rely on its own probe and
+        // build a real transcode command, which correctly routes to hardware
+        // (e.g. NVDEC/NVENC). When we DO have stream info, keep direct play/stream so
+        // compatible files (e.g. H.264/AAC MP4) can remux without transcoding.
+        bool hasStreamInfo = mediaStreams.Count > 0;
+
         return new MediaSourceInfo()
         {
-            Container = extension,
+            Container = hasStreamInfo ? extension : null,
             DefaultAudioStreamIndex = defaultAudioStreamIndex,
             EncoderProtocol = MediaProtocol.Http,
             Id = ToGuid(MediaSourcePrefix, (int)type, id, 0).ToString(),
@@ -710,8 +722,8 @@ public partial class StreamService(IXtreamClient xtreamClient)
             Protocol = MediaProtocol.Http,
             RequiresClosing = restream,
             RequiresOpening = restream,
-            SupportsDirectPlay = true,
-            SupportsDirectStream = true,
+            SupportsDirectPlay = hasStreamInfo,
+            SupportsDirectStream = hasStreamInfo,
             SupportsProbing = shouldProbe,
         };
     }
