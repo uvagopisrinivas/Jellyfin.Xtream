@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.33.0",
+        "changelog": "Make the Refresh Xtream VOD & Series scheduled task reliably rebuild channel items. It now replays the plugin configuration save (same code path as manually toggling a category and clicking Save), forcing Jellyfin to re-pull VOD/Series items with the provider's current stream IDs. Fixes movies failing to play (404) after the provider rotates stream IDs.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.33/Jellyfin.Xtream-v0.9.33.zip",
+        "checksum": "3f72e9a3004a551469ffd8ac3c12d1c8",
+        "timestamp": "2026-10-04T01:56:55Z"
+      },
+      {
         "version": "0.9.32.0",
         "changelog": "Add 'Refresh Xtream VOD & Series' scheduled task. Appears in Dashboard > Scheduled Tasks under a Jellyfin Xtream category with no default triggers (add your own interval/daily schedule). On run it bumps the plugin data version and queues Jellyfin's channel refresh, forcing VOD/Series to re-pull from the Xtream API so new titles and changed stream IDs appear. Does not interrupt active playback.",
         "targetAbi": "10.11.0.0",
