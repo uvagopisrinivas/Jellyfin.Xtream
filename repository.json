@@ -8,6 +8,14 @@
     "category": "LiveTV",
     "versions": [
       {
+        "version": "0.9.31.0",
+        "changelog": "Fix VOD HEVC/MKV CPU-transcode stutter: when the Xtream provider returns no codec info (empty video/audio arrays), the plugin no longer advertises an empty MediaStreams source as direct-play. Jellyfin now probes the stream and builds a proper hardware (NVDEC/NVENC) transcode instead of a flag-less CPU software transcode. Files with known codecs (H.264/AAC MP4) still remux as before.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.31/Jellyfin.Xtream-v0.9.31.zip",
+        "checksum": "2946aa906d9b14e8ba715e07a3a1dd87",
+        "timestamp": "2026-10-04T04:04:00Z"
+      },
+      {
         "version": "0.9.30.0",
         "changelog": "Revert live TV restream to original behavior (no reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. Live TV multi-channel issues were traced to the provider connection limit, not the plugin.",
         "targetAbi": "10.11.0.0",
