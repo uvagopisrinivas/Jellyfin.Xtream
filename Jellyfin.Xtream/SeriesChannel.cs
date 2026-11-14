@@ -267,6 +267,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
             {
                 ContentType = ChannelMediaContentType.Episode,
                 DateCreated = episode.Added,
+                DateModified = StreamService.MediaSourceSchemaDate,
                 Id = StreamService.ToGuid(StreamService.EpisodePrefix, 0, 0, episode.EpisodeId).ToString(),
                 ImageUrl = RewriteImageUrl(episode.Info?.MovieImage ?? series.Info.Cover),
                 IndexNumber = episode.EpisodeNum > 0 ? episode.EpisodeNum : null,

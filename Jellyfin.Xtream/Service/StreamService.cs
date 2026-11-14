@@ -102,6 +102,13 @@ public partial class StreamService(IXtreamClient xtreamClient)
     /// </summary>
     public const int EpgPrefix = 0x5d774c3f;
 
+    /// <summary>
+    /// Fixed modification date reported on playable channel items. Jellyfin force-updates an existing
+    /// channel item (and rewrites its saved media sources) when this is newer than the stored value.
+    /// Bump it whenever the media source format changes so stale saved sources get replaced.
+    /// </summary>
+    public static readonly DateTime MediaSourceSchemaDate = new(2026, 11, 14, 0, 0, 0, DateTimeKind.Utc);
+
     private static readonly Regex _tagRegex = TagRegex();
 
     /// <summary>
