@@ -220,10 +220,7 @@ public class SeriesChannel(ILogger<SeriesChannel> logger) : IChannel, IDisableMe
         return new()
         {
             DateCreated = created,
-
-            // Season (not Container) so the Android TV app opens the episode list in its folder browser
-            // instead of the grid, whose display-settings gear crashes for non-library folders.
-            FolderType = ChannelFolderType.Season,
+            FolderType = ChannelFolderType.Container,
             Id = StreamService.ToGuid(StreamService.SeasonPrefix, serie.CategoryId, seriesId, seasonId).ToString(),
             ImageUrl = imageUrl,
             IndexNumber = seasonId,

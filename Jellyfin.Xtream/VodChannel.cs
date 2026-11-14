@@ -168,12 +168,7 @@ public class VodChannel(ILogger<VodChannel> logger) : IChannel, IDisableMediaSou
         {
             try
             {
-                ChannelItemInfo item = StreamService.CreateChannelItemInfo(StreamService.VodCategoryPrefix, category);
-
-                // Season (not Container) so the Android TV app opens the category in its folder browser
-                // instead of the grid, whose display-settings gear crashes for non-library folders.
-                item.FolderType = ChannelFolderType.Season;
-                items.Add(item);
+                items.Add(StreamService.CreateChannelItemInfo(StreamService.VodCategoryPrefix, category));
             }
             catch (Exception ex)
             {
