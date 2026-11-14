@@ -8,14 +8,6 @@
     "category": "LiveTV",
     "versions": [
       {
-        "version": "0.9.34.0",
-        "changelog": "Fix Android/Google TV app crash on the display-settings gear in episode lists and VOD categories: seasons and VOD categories use the Season folder type. Roll back to v0.9.33 if TV navigation regresses.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/uvagopisrinivas/Jellyfin.Xtream/releases/download/v0.9.34/Jellyfin.Xtream-v0.9.34.zip",
-        "checksum": "369c14d24159b3ed9c014f0b52312d1f",
-        "timestamp": "2026-11-14T20:41:28Z"
-      },
-      {
         "version": "0.9.33.0",
         "changelog": "Fix VOD playback still failing on Jellyfin 12.x for previously imported items: VOD and episode channel items report a fixed DateModified so Jellyfin rewrites their stale saved media sources.",
         "targetAbi": "10.11.0.0",
