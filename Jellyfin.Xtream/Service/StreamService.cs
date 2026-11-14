@@ -712,7 +712,10 @@ public partial class StreamService(IXtreamClient xtreamClient)
             Container = hasStreamInfo ? extension : null,
             DefaultAudioStreamIndex = defaultAudioStreamIndex,
             EncoderProtocol = MediaProtocol.Http,
-            Id = ToGuid(MediaSourcePrefix, (int)type, id, 0).ToString(),
+            // Channel items (VOD/Series/Catchup) must leave the Id unset: newer Jellyfin assigns the item's
+            // own id to the first source, and drops sources whose Id is a GUID that matches no library item.
+            // Live TV matches opened streams by this Id, so it keeps the generated one.
+            Id = type == StreamType.Live ? ToGuid(MediaSourcePrefix, (int)type, id, 0).ToString() : null,
             IsInfiniteStream = isLive,
             IsRemote = true,
             RunTimeTicks = durationSecs.HasValue ? durationSecs.Value * TimeSpan.TicksPerSecond : null,

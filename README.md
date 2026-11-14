@@ -108,7 +108,7 @@ If you're running Jellyfin in Docker, follow these steps to deploy the plugin:
 
 ```bash
 #!/bin/bash
-VERSION="0.9.31"
+VERSION="0.9.32"
 PLUGIN_DIR="/srv/nvme-appdata/configs/jellyfin/config/plugins/Jellyfin.Xtream_5d774c35-8567-46d3-a950-9bb8227a0c5d"
 
 cd /tmp
@@ -376,6 +376,7 @@ docker start jellyfin
 
 ## Version History
 
+- **v0.9.32** - Fix VOD/Series playback on Jellyfin 12.x (400 "Error processing request"): channel media sources no longer set a GUID `Id`, which newer Jellyfin filters out when it matches no library item. Live TV keeps its generated `Id`. Bumping the version also forces a channel refresh so previously saved sources are rewritten.
 - **v0.9.31** - Fix VOD HEVC/MKV CPU-transcode stutter: when the Xtream provider returns no codec info (empty video/audio arrays), the plugin no longer advertises an empty MediaStreams source as direct-play. Jellyfin now probes the stream and builds a proper hardware (NVDEC/NVENC) transcode instead of a flag-less CPU software transcode. Files with known codecs (H.264/AAC MP4) still remux as before.
 - **v0.9.30** - Revert live TV restream to original behavior (no auto-reconnect/backoff/stall handling); keeps the VOD play-time metadata fix. The reconnect experiments were removed as the underlying live TV issues were traced to the provider's connection limit rather than the plugin.
 - **v0.9.29** - Live TV auto-reconnect: restream now automatically reconnects when the provider closes the source connection (common for IPTV feeds that drop long-lived HTTP connections), fixing live channels stopping every 60-90 seconds.
