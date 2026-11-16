@@ -95,5 +95,17 @@ public class PluginConfiguration : BasePluginConfiguration
     /// this language will be set as the default.
     /// </summary>
     public string PreferredAudioLanguage { get; set; } = "tel";
+
+    /// <summary>
+    /// Gets or sets the Live TV category names (comma separated, case-insensitive) whose channels are restricted.
+    /// Channels in these categories get <see cref="RestrictedTag"/>, so users who block that tag in
+    /// Jellyfin's Parental Control settings cannot see or play them.
+    /// </summary>
+    public string RestrictedLiveTvCategories { get; set; } = "FOR Adults";
+
+    /// <summary>
+    /// Gets or sets the tag added to channels in restricted Live TV categories.
+    /// </summary>
+    public string RestrictedTag { get; set; } = "xtream-restricted";
 }
 #pragma warning restore CA2227

@@ -10,7 +10,13 @@ export default function (view) {
 
     const getConfig = ApiClient.getPluginConfiguration(pluginId);
     const visible = view.querySelector("#Visible");
-    getConfig.then((config) => visible.checked = config.IsCatchupVisible);
+    const restrictedCategories = view.querySelector("#RestrictedCategories");
+    const restrictedTag = view.querySelector("#RestrictedTag");
+    getConfig.then((config) => {
+      visible.checked = config.IsCatchupVisible;
+      restrictedCategories.value = config.RestrictedLiveTvCategories ?? '';
+      restrictedTag.value = config.RestrictedTag ?? '';
+    });
     const table = view.querySelector('#LiveContent');
     Xtream.populateCategoriesTable(
       table,
@@ -23,6 +29,8 @@ export default function (view) {
 
         ApiClient.getPluginConfiguration(pluginId).then((config) => {
           config.IsCatchupVisible = visible.checked;
+          config.RestrictedLiveTvCategories = restrictedCategories.value;
+          config.RestrictedTag = restrictedTag.value;
           config.LiveTv = data;
           ApiClient.updatePluginConfiguration(pluginId, config).then((result) => {
             Dashboard.processPluginConfigurationUpdateResult(result);

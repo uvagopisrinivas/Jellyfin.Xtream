@@ -55,6 +55,8 @@ public class LiveTvService(IServerApplicationHost appHost, IHttpClientFactory ht
     public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
     {
         Plugin plugin = Plugin.Instance;
+        HashSet<int> restrictedCategoryIds = await GetRestrictedCategoryIds(cancellationToken).ConfigureAwait(false);
+        string restrictedTag = plugin.Configuration.RestrictedTag?.Trim() ?? string.Empty;
         List<ChannelInfo> items = [];
         foreach (StreamInfo channel in await plugin.StreamService.GetLiveStreamsWithOverrides(cancellationToken).ConfigureAwait(false))
         {
@@ -62,13 +64,21 @@ public class LiveTvService(IServerApplicationHost appHost, IHttpClientFactory ht
             {
                 ParsedName parsed = StreamService.ParseName(channel.Name);
                 string? imageUrl = !string.IsNullOrWhiteSpace(channel.StreamIcon) ? channel.StreamIcon : null;
+                string[] tags = parsed.Tags;
+                if (restrictedTag.Length > 0
+                    && channel.CategoryId.HasValue
+                    && restrictedCategoryIds.Contains(channel.CategoryId.Value))
+                {
+                    tags = [.. tags, restrictedTag];
+                }
+
                 items.Add(new ChannelInfo()
                 {
                     Id = StreamService.ToGuid(StreamService.LiveTvPrefix, channel.StreamId, 0, 0).ToString(),
                     Number = channel.Num.ToString(CultureInfo.InvariantCulture),
                     ImageUrl = imageUrl,
                     Name = parsed.Title,
-                    Tags = parsed.Tags,
+                    Tags = tags,
                 });
             }
             catch (Exception ex)
@@ -78,6 +88,34 @@ public class LiveTvService(IServerApplicationHost appHost, IHttpClientFactory ht
         }
 
         return items;
+    }
+
+    /// <summary>
+    /// Resolves the configured restricted Live TV category names to provider category ids.
+    /// </summary>
+    private async Task<HashSet<int>> GetRestrictedCategoryIds(CancellationToken cancellationToken)
+    {
+        HashSet<string> names = (Plugin.Instance.Configuration.RestrictedLiveTvCategories ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (names.Count == 0)
+        {
+            return [];
+        }
+
+        try
+        {
+            List<Category> categories = await xtreamClient.GetLiveCategoryAsync(Plugin.Instance.Creds, cancellationToken).ConfigureAwait(false);
+            return categories
+                .Where(c => names.Contains(c.CategoryName.Trim()))
+                .Select(c => c.CategoryId)
+                .ToHashSet();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to resolve restricted Live TV categories");
+            return [];
+        }
     }
 
     /// <inheritdoc />
